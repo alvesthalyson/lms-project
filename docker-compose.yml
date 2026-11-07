@@ -1,0 +1,76 @@
+# Development stack: Postgres + Django (runserver) + Vite (HMR), with the source bind-mounted.
+# For a production-style run see docker-compose.prod.yml (README.md has the commands).
+#
+# Variables come from ./.env (copy .env.example). Django's own settings are in ./backend/.env.
+name: lms
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-lms}
+      POSTGRES_USER: ${POSTGRES_USER:-lms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Runs only when the volume is first created: installs the pg_trgm extension.
+      - ./docker/postgres/init-extensions.sh:/docker-entrypoint-initdb.d/10-extensions.sh:ro
+    ports:
+      # Bound to localhost only, so psql / a GUI client can connect without exposing the database.
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    restart: unless-stopped
+    env_file: ./backend/.env
+    environment:
+      # Database credentials live in one place (./.env); Django reads them as POSTGRES_*.
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-lms}
+      POSTGRES_USER: ${POSTGRES_USER:-lms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      DJANGO_MIGRATE: "1" # apply migrations on start (dev only)
+    volumes:
+      - ./backend:/app
+      - media_data:/app/media
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    restart: unless-stopped
+    environment:
+      # The browser calls the API directly, so this is the host-visible URL, not http://backend:8000.
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api/v1}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # keep the image's installed packages; do not shadow them with the host folder
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  media_data:

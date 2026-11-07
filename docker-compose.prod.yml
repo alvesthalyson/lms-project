@@ -1,0 +1,32 @@
+# Production-style override. Use it INSTEAD of the dev setup, with both files:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Needs Docker Compose >= 2.24 (the !override tag). What it does: builds the `prod` image targets
+# (gunicorn as a non-root user; nginx serving the built SPA), removes the source bind mounts, turns
+# DEBUG off and stops applying migrations automatically.
+#
+# What it does NOT do: TLS, or serving uploaded cover images (/media/). Put a reverse proxy
+# (Caddy, Traefik, nginx, a cloud load balancer) in front, terminate HTTPS there, and route /media/
+# to the media_data volume.
+services:
+  backend:
+    build:
+      target: prod
+    environment:
+      DJANGO_DEBUG: "false"
+      DJANGO_MIGRATE: "0" # run `docker compose ... run --rm backend python manage.py migrate` as a release step
+    volumes: !override
+      - media_data:/app/media
+    ports: !override
+      - "${BACKEND_PORT:-8000}:8000"
+
+  frontend:
+    build:
+      target: prod
+      args:
+        VITE_API_URL: ${VITE_API_URL:?Set VITE_API_URL in .env to the public API URL, e.g. https://api.example.com/api/v1}
+    environment: !reset {}
+    volumes: !reset []
+    ports: !override
+      - "${FRONTEND_PORT:-8080}:80"
