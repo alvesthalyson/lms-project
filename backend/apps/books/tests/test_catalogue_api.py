@@ -159,7 +159,7 @@ class TestBookWrite:
         book = BookFactory(copies=1, copies__status=CopyStatus.ON_LOAN)
         r = as_user(admin).delete(f"/api/v1/books/{book.pk}/")
         assert r.status_code == 409
-        assert r.json()["code"] == "book_has_active_loans" or "book_has_active_loans" in str(r.json())
+        assert r.json()["code"] == "book_has_active_loans"
 
 
 class TestCopies:

@@ -17,6 +17,8 @@ export interface Loan {
 export interface Fine {
   id: number;
   loan_id: number;
+  member: { id: number; email: string; full_name: string; member_number: string | null };
+  book: { id: number; title: string; isbn: string; cover_image: string | null };
   reason: "OVERDUE" | "LOST" | "DAMAGED";
   /** Decimal string, e.g. "1.50". */
   amount: string;

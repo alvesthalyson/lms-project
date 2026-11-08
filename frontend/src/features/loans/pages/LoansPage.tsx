@@ -12,6 +12,7 @@ import { toApiError } from "@/api/errors";
 import { formatDate } from "@/lib/format";
 import { toast } from "@/lib/toast";
 
+import { NewLoanModal } from "../components/NewLoanModal";
 import { useLoans, useRenewLoan, useReturnLoan } from "../hooks";
 import type { Loan, LoanStatus } from "../types";
 
@@ -30,6 +31,7 @@ export function LoansPage() {
 
   const [status, setStatus] = useState<LoanStatus | "">("");
   const [page, setPage] = useState(1);
+  const [lending, setLending] = useState(false);
 
   const query = useLoans({ status: status || undefined, page, page_size: PAGE_SIZE, ordering: "-loaned_at" });
   const renew = useRenewLoan();
@@ -55,6 +57,8 @@ export function LoansPage() {
     <section className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-2xl font-semibold">{staff ? "Loans" : "My loans"}</h1>
+        <div className="flex flex-wrap items-end gap-3">
+          {staff && <Button onClick={() => setLending(true)}>New loan</Button>}
         <label className="flex items-center gap-2 text-sm">
           Status
           <Select
@@ -71,6 +75,7 @@ export function LoansPage() {
             <option value="returned">Returned</option>
           </Select>
         </label>
+        </div>
       </div>
 
       {query.isPending ? (
@@ -155,6 +160,7 @@ export function LoansPage() {
           />
         </>
       )}
+      {lending && <NewLoanModal onClose={() => setLending(false)} />}
     </section>
   );
 }

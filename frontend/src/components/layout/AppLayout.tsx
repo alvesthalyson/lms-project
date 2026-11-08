@@ -4,6 +4,7 @@ import { NavLink, Outlet, Link } from "react-router-dom";
 import { Toaster } from "@/components/Toaster";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { isStaff } from "@/features/auth/access";
 import { useAuth } from "@/features/auth/hooks";
 import { cn } from "@/lib/cn";
 
@@ -33,8 +34,21 @@ export function AppLayout() {
                 Books
               </NavLink>
               {user && (
-                <NavLink to="/loans" className={navLinkClass}>
-                  Loans
+                <>
+                  <NavLink to="/loans" className={navLinkClass}>
+                    Loans
+                  </NavLink>
+                  <NavLink to="/reservations" className={navLinkClass}>
+                    Reservations
+                  </NavLink>
+                  <NavLink to="/fines" className={navLinkClass}>
+                    Fines
+                  </NavLink>
+                </>
+              )}
+              {isStaff(user) && (
+                <NavLink to="/dashboard" className={navLinkClass}>
+                  Dashboard
                 </NavLink>
               )}
             </nav>

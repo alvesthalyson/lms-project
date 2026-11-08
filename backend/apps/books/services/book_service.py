@@ -89,8 +89,8 @@ def add_copy(book: Book, validated_data: dict[str, Any]) -> BookCopy:
 
 @transaction.atomic
 def update_copy(copy: BookCopy, validated_data: dict[str, Any]) -> BookCopy:
+    lock_book(copy.book_id)  # same order as the loan service: book first, then copy
     copy = lock_copy(copy.pk)
-    lock_book(copy.book_id)
     if copy.status not in EDITABLE_STATUSES:
         raise BusinessRuleError(
             "A copy on loan or on hold cannot be edited.",

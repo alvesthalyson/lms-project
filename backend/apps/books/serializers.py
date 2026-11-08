@@ -98,6 +98,8 @@ class BookCopyCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookCopy
         fields = ["barcode", "condition_notes", "acquired_at"]
+        # Left out, the service generates one (B000012-003).
+        extra_kwargs = {"barcode": {"required": False}}
 
 
 class BookCopyUpdateSerializer(serializers.ModelSerializer):

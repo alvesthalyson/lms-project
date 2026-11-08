@@ -1,6 +1,7 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 
 import { AppLayout } from "@/components/layout/AppLayout";
+import { STAFF_ROLES } from "@/features/auth/access";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { BooksListPage } from "@/features/books/pages/BooksListPage";
@@ -9,7 +10,10 @@ import { LibraryEntrance } from "@/features/library/components/LibraryEntrance";
 import { LibraryLayout } from "@/features/library/components/LibraryLayout";
 import { HallPage } from "@/features/library/pages/HallPage";
 import { ShelfPage } from "@/features/library/pages/ShelfPage";
+import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
+import { FinesPage } from "@/features/fines/pages/FinesPage";
 import { LoansPage } from "@/features/loans/pages/LoansPage";
+import { ReservationsPage } from "@/features/reservations/pages/ReservationsPage";
 
 /**
  * Route table. `/` is the Library entrance; `/hall` and `/shelf/:slug` are the public browsing experience. The catalogue is public (the API allows anonymous reads); anything
@@ -37,7 +41,15 @@ export const router = createBrowserRouter([
       { path: "books", element: <BooksListPage /> },
       {
         element: <ProtectedRoute />,
-        children: [{ path: "loans", element: <LoansPage /> }],
+        children: [
+          { path: "loans", element: <LoansPage /> },
+          { path: "reservations", element: <ReservationsPage /> },
+          { path: "fines", element: <FinesPage /> },
+        ],
+      },
+      {
+        element: <ProtectedRoute roles={STAFF_ROLES} />,
+        children: [{ path: "dashboard", element: <DashboardPage /> }],
       },
       { path: "*", element: <Navigate to="/" replace /> },
     ],

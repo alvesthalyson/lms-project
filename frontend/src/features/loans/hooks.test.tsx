@@ -20,6 +20,8 @@ const loan = { id: 42, status: "active" } as Loan;
 const fine: Fine = {
   id: 9,
   loan_id: 42,
+  member: { id: 7, email: "ana@example.com", full_name: "Ana Silva", member_number: "M-000007" },
+  book: { id: 12, title: "Clean Architecture", isbn: "9780134494166", cover_image: null },
   reason: "OVERDUE",
   amount: "1.50",
   status: "UNPAID",

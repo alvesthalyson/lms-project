@@ -8,8 +8,12 @@ from apps.core.views import healthz
 
 api_v1 = [
     path("auth/", include("apps.users.auth_urls")),
+    path("", include("apps.users.urls")),  # users/ (staff lookup)
     path("", include("apps.books.urls")),  # books/, copies/, categories/, authors/
-    # Next steps add: users/, loans/, fines/, reservations/, dashboard/, settings/ (see docs/API.md section 3).
+    path("", include("apps.loans.urls")),  # loans/, fines/
+    path("", include("apps.reservations.urls")),  # reservations/
+    path("", include("apps.dashboard.urls")),  # dashboard/...
+    path("", include("apps.core.urls")),  # settings/
 ]
 
 urlpatterns = [
