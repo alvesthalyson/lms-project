@@ -60,10 +60,8 @@ class LoanViewSet(MemberScopedQuerysetMixin, viewsets.GenericViewSet):
         result = loan_service.return_loan(
             loan=self.get_object(), received_by=request.user, **serializer.validated_data
         )
-        body = {
-            "loan": LoanSerializer(result.loan).data,
-            "fine": FineSerializer(result.fine).data if result.fine else None,
-        }
+        # Pass the model instances: LoanReturnResponseSerializer does the nesting itself.
+        body = {"loan": result.loan, "fine": result.fine}
         return Response(LoanReturnResponseSerializer(body).data)
 
 
