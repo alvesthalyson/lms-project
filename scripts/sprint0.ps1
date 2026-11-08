@@ -10,11 +10,12 @@
       powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step backend
       powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step frontend
       powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step run   # starts both servers
+      powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step demo  # demo accounts + sample loans
 
   It stops at the first failing step and says which one it was. Details: docs\SPRINT0.md
 #>
 param(
-  [ValidateSet("all", "backend", "frontend", "run")]
+  [ValidateSet("all", "backend", "frontend", "run", "demo")]
   [string]$Step = "all"
 )
 
@@ -152,6 +153,14 @@ function Invoke-Frontend {
   finally { Pop-Location }
 }
 
+function Invoke-DemoUsers {
+  Write-Step "demo accounts and sample activity (development only)"
+  if (-not (Test-Path $VenvPython)) { throw "Run the backend step first: scripts\sprint0.ps1 -Step backend" }
+  Import-DotEnv (Join-Path $BackendDir ".env")
+  Push-Location $BackendDir
+  try { Invoke-Native $VenvPython @("manage.py", "seed_demo_users") } finally { Pop-Location }
+}
+
 function Start-Servers {
   Write-Step "start the backend (http://localhost:8000) and the frontend (http://localhost:5173)"
   if (-not (Test-Path $VenvPython)) { throw "Run the backend step first: scripts\sprint0.ps1 -Step backend" }
@@ -166,6 +175,7 @@ try {
     "backend"  { Test-Prerequisites; Invoke-Backend }
     "frontend" { Test-Prerequisites; Invoke-Frontend }
     "run"      { Start-Servers; return }
+    "demo"     { Invoke-DemoUsers; return }
     default    { Test-Prerequisites; Invoke-Backend; Invoke-Frontend }
   }
   Write-Host ""
