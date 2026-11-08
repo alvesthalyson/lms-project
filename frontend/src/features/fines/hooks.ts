@@ -18,7 +18,8 @@ export function useFines(params: FineListParams) {
 function useSettle(fn: (id: number) => Promise<unknown>) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: fn,
+    // Only the id: React Query would otherwise pass its own context as a second argument.
+    mutationFn: (id: number) => fn(id),
     // A settled fine can unblock the member and changes the dashboard totals.
     onSuccess: () =>
       Promise.all([
