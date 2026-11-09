@@ -33,7 +33,7 @@ function LoginProbe() {
 }
 
 function renderAt(path: string, auth: Pick<AuthContextValue, "status" | "user">) {
-  const value: AuthContextValue = { ...auth, login: vi.fn(), logout: vi.fn() };
+  const value: AuthContextValue = { ...auth, login: vi.fn(), register: vi.fn(), logout: vi.fn() };
   return render(
     <AuthContext.Provider value={value}>
       <MemoryRouter initialEntries={[path]}>

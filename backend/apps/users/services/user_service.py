@@ -27,3 +27,18 @@ def register_member(
     user.member_number = f"M-{user.pk:06d}"
     user.save(update_fields=["member_number"])
     return user
+
+
+@transaction.atomic
+def update_profile(*, user: User, validated_data: dict) -> User:
+    """Members edit only their own contact data (see ProfileUpdateSerializer)."""
+    for field, value in validated_data.items():
+        setattr(user, field, value)
+    user.save(update_fields=[*validated_data.keys()] or None)
+    return user
+
+
+@transaction.atomic
+def change_password(*, user: User, new_password: str) -> None:
+    user.set_password(new_password)
+    user.save(update_fields=["password"])

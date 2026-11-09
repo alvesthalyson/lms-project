@@ -53,7 +53,7 @@ function renderPage(role: Role = "MEMBER") {
     blocked_at: null,
     date_joined: "2026-11-01T00:00:00Z",
   } satisfies User;
-  const auth: AuthContextValue = { status: "authenticated", user, login: vi.fn(), logout: vi.fn() };
+  const auth: AuthContextValue = { status: "authenticated", user, login: vi.fn(), register: vi.fn(), logout: vi.fn() };
   return render(
     <QueryClientProvider client={client}>
       <AuthContext.Provider value={auth}>

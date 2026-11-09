@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { toApiError } from "@/api/errors";
@@ -30,6 +30,7 @@ function useReturnPath(): string {
 export function LoginPage() {
   const { status, login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const returnPath = useReturnPath();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -93,6 +94,13 @@ export function LoginPage() {
           {isSubmitting ? "Signing in…" : "Sign in"}
         </Button>
       </form>
+
+      <p className="text-center text-sm text-muted-foreground">
+        New here?{" "}
+        <Link to="/register" state={location.state} className="font-medium text-foreground underline underline-offset-4">
+          Create an account
+        </Link>
+      </p>
     </div>
   );
 }

@@ -1,11 +1,13 @@
 import { useCallback, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 
+import { Toaster } from "@/components/Toaster";
 import { useCategories } from "@/features/books/hooks";
 import type { Category } from "@/features/books/types";
 import { FilmGrain } from "@/features/library/components/FilmGrain";
 import "@/features/library/library.css";
 
+import { AccountBar } from "../components/AccountBar";
 import { ShelfInspector, type InspectorTarget } from "../components/ShelfInspector";
 import { FIRST_ROOM, firstCategoryIndex, HOME_ROOMS, TOTAL_SHELVES, type Hotspot, type RoomId } from "../config";
 import "../home.css";
@@ -112,7 +114,11 @@ export function HomePage() {
         </Link>
       </nav>
 
+      <AccountBar />
+
       {open && <ShelfInspector target={open} onClose={close} />}
+      {/* The Home lives outside AppLayout, so it brings its own toasts (reservation results, errors). */}
+      <Toaster />
     </main>
   );
 }

@@ -3,14 +3,16 @@ import { createContext, useCallback, useEffect, useMemo, useState, type ReactNod
 
 import { setAuthFailureHandler } from "@/api/client";
 
-import { fetchMe, login as loginRequest, logout as logoutRequest } from "./api";
+import { fetchMe, login as loginRequest, logout as logoutRequest, register as registerRequest } from "./api";
 import { useTokenStore } from "./tokenStore";
-import type { AuthStatus, LoginPayload, User } from "./types";
+import type { AuthStatus, LoginPayload, RegisterPayload, User } from "./types";
 
 export interface AuthContextValue {
   status: AuthStatus;
   user: User | null;
   login: (payload: LoginPayload) => Promise<User>;
+  /** Creates a MEMBER account and signs it in. */
+  register: (payload: RegisterPayload) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -64,6 +66,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data.user;
   }, []);
 
+  const register = useCallback(async (payload: RegisterPayload) => {
+    const data = await registerRequest(payload);
+    useTokenStore.getState().setTokens({ access: data.access, refresh: data.refresh });
+    setState({ status: "authenticated", user: data.user });
+    return data.user;
+  }, []);
+
   const logout = useCallback(async () => {
     const refresh = useTokenStore.getState().refreshToken;
     try {
@@ -77,8 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ status: state.status, user: state.user, login, logout }),
-    [state, login, logout],
+    () => ({ status: state.status, user: state.user, login, register, logout }),
+    [state, login, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

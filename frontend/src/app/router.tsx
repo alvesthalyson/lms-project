@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { STAFF_ROLES } from "@/features/auth/access";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
+import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import { BooksListPage } from "@/features/books/pages/BooksListPage";
 import { HomePage } from "@/features/home/pages/HomePage";
 import { LibraryEntrance } from "@/features/library/components/LibraryEntrance";
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { path: "login", element: <LoginPage /> },
+      { path: "register", element: <RegisterPage /> },
       { path: "books", element: <BooksListPage /> },
       {
         element: <ProtectedRoute />,

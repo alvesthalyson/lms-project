@@ -78,6 +78,7 @@ function renderPage({ role, url = "/books" }: { role?: Role; url?: string } = {}
     status: role ? "authenticated" : "anonymous",
     user: role ? makeUser(role) : null,
     login: vi.fn(),
+    register: vi.fn(),
     logout: vi.fn(),
   };
   return render(
