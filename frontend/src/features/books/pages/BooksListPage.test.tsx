@@ -32,6 +32,10 @@ function makeBook(overrides: Partial<Book> = {}): Book {
     available_copies: 1,
     is_available: true,
     is_active: true,
+    pages: null,
+    rating_avg: null,
+    rating_count: 0,
+    is_favorite: false,
     ...overrides,
   };
 }

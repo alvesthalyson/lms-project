@@ -51,6 +51,10 @@ function book(overrides: Partial<Book>): Book {
     available_copies: 2,
     is_available: true,
     is_active: true,
+    pages: null,
+    rating_avg: null,
+    rating_count: 0,
+    is_favorite: false,
     ...overrides,
   };
 }
@@ -84,7 +88,9 @@ async function openPoetry() {
   const user = userEvent.setup();
   const [shelf] = await screen.findAllByRole("button", { name: "Poesia" });
   await user.click(shelf!);
-  return { user, dialog: await screen.findByRole("dialog") };
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("button", { name: "Lista" })); // the accessible catalogue view
+  return { user, dialog };
 }
 
 beforeEach(() => {
