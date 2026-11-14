@@ -4,7 +4,7 @@ from django.utils.text import slugify
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import Author, Book, BookCopy, Category, CopyStatus
+from .models import Author, Book, BookCopy, Category, CopyStatus, Review
 
 MAX_COVER_BYTES = 5 * 1024 * 1024
 
@@ -128,7 +128,22 @@ class BookCopyUpdateSerializer(serializers.ModelSerializer):
 # --------------------------------------------------------------------------
 
 
-class BookSummarySerializer(serializers.ModelSerializer):
+def cover_for(book: Book, request=None) -> str | None:
+    """The uploaded cover if there is one, else the external cover URL, else None."""
+    if book.cover_image:
+        url = book.cover_image.url
+        return request.build_absolute_uri(url) if request is not None else url
+    return book.cover_url or None
+
+
+class _CoverMixin(serializers.Serializer):
+    cover_image = serializers.SerializerMethodField()
+
+    def get_cover_image(self, obj) -> str | None:
+        return cover_for(obj, self.context.get("request"))
+
+
+class BookSummarySerializer(_CoverMixin, serializers.ModelSerializer):
     """Tiny nested representation used inside loans, fines, reservations, dashboard."""
 
     class Meta:
@@ -137,12 +152,19 @@ class BookSummarySerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class BookListSerializer(serializers.ModelSerializer):
-    """Catalogue rows. Authors and category are one level of nesting, nothing deeper."""
+class BookListSerializer(_CoverMixin, serializers.ModelSerializer):
+    """
+    Catalogue rows. Authors and category are one level of nesting, nothing deeper.
+    `rating_avg`, `rating_count` and `is_favorite` come from queryset annotations (see BookViewSet);
+    without them (a book serialised outside the catalogue) they fall back to null / 0 / false.
+    """
 
     authors = AuthorSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     is_available = serializers.SerializerMethodField()
+    rating_avg = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Book
@@ -159,17 +181,31 @@ class BookListSerializer(serializers.ModelSerializer):
             "available_copies",
             "is_available",
             "is_active",
+            "rating_avg",
+            "rating_count",
+            "is_favorite",
         ]
         read_only_fields = fields
 
     def get_is_available(self, obj) -> bool:
         return obj.available_copies > 0
 
+    def get_rating_avg(self, obj) -> float | None:
+        value = getattr(obj, "rating_avg", None)
+        return round(float(value), 1) if value is not None else None
+
+    def get_rating_count(self, obj) -> int:
+        return getattr(obj, "rating_count", 0) or 0
+
+    def get_is_favorite(self, obj) -> bool:
+        return bool(getattr(obj, "is_favorite", False))
+
 
 class BookDetailSerializer(BookListSerializer):
     class Meta(BookListSerializer.Meta):
         fields = BookListSerializer.Meta.fields + [
             "description",
+            "pages",
             "created_at",
             "updated_at",
         ]
@@ -214,8 +250,15 @@ class BookWriteSerializer(serializers.ModelSerializer):
             "author_ids",
             "description",
             "cover_image",
+            "cover_url",
+            "pages",
             "initial_copies",
         ]
+
+    def validate_cover_url(self, url):
+        if url and not url.startswith("https://"):
+            raise serializers.ValidationError("The cover URL must start with https://.")
+        return url
 
     def validate_cover_image(self, image):
         if image and image.size > MAX_COVER_BYTES:
@@ -233,3 +276,41 @@ class BookWriteSerializer(serializers.ModelSerializer):
                 )
             attrs.pop("initial_copies", None)
         return attrs
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """
+    Public representation. The reviewer is shown as "First L." (never the e-mail), and
+    `is_mine` lets the page offer edit/delete without comparing ids.
+    """
+
+    reviewer = serializers.SerializerMethodField()
+    is_mine = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Review
+        fields = ["id", "reviewer", "rating", "comment", "created_at", "is_mine"]
+        read_only_fields = fields
+
+    def get_reviewer(self, obj) -> str:
+        first = (obj.user.first_name or "").strip()
+        last = (obj.user.last_name or "").strip()
+        if first and last:
+            return f"{first} {last[0]}."
+        return first or "Reader"
+
+    def get_is_mine(self, obj) -> bool:
+        request = self.context.get("request")
+        return bool(request and request.user.is_authenticated and obj.user_id == request.user.id)
+
+
+class ReviewWriteSerializer(serializers.Serializer):
+    rating = serializers.IntegerField(min_value=1, max_value=5)
+    comment = serializers.CharField(max_length=2000, required=False, allow_blank=True, default="")
+
+
+class RelatedBookSerializer(serializers.Serializer):
+    """One 'read next' suggestion: why it was picked, and the book."""
+
+    reason = serializers.ChoiceField(choices=["readers", "author", "category"])
+    book = BookListSerializer()

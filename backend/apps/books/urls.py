@@ -6,6 +6,7 @@ router = DefaultRouter()
 router.register("categories", views.CategoryViewSet, basename="category")
 router.register("authors", views.AuthorViewSet, basename="author")
 router.register("books", views.BookViewSet, basename="book")
+router.register("reviews", views.ReviewViewSet, basename="review")
 router.register("copies", views.CopyViewSet, basename="copy")
 
 urlpatterns = router.urls

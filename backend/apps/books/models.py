@@ -1,6 +1,7 @@
+from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
@@ -68,6 +69,12 @@ class Book(TimeStampedModel):
     )
     description = models.TextField(blank=True)
     cover_image = models.ImageField(upload_to="covers/%Y/%m/", null=True, blank=True)
+    cover_url = models.URLField(
+        max_length=500,
+        blank=True,
+        help_text="External cover (e.g. Open Library). An uploaded cover_image wins over it.",
+    )
+    pages = models.PositiveIntegerField(null=True, blank=True)
 
     # Denormalised counters, kept in sync by the book/loan services inside a
     # transaction (see BookCopy). Cheap to filter and sort on.
@@ -118,3 +125,46 @@ class BookCopy(TimeStampedModel):
 
     def __str__(self):
         return f"{self.barcode} ({self.get_status_display()})"
+
+
+class Review(TimeStampedModel):
+    """A member's rating and optional comment. One per user and book; posting again edits it."""
+
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews"
+    )
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["book", "user"], name="review_one_per_user_book"),
+            models.CheckConstraint(
+                condition=Q(rating__gte=1, rating__lte=5), name="review_rating_1_5"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} rated book {self.book_id}: {self.rating}"
+
+
+class Favorite(TimeStampedModel):
+    """A book on a member's wish list."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="favorites"
+    )
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="favorites")
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "book"], name="favorite_one_per_user_book"),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} saved book {self.book_id}"

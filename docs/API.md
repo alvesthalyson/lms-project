@@ -399,6 +399,23 @@ Errors: 400 `validation_error` (bad ISBN checksum, duplicate ISBN, empty `author
 | GET, PATCH | `/authors/{id}/` | Public, Librarian+ | |
 | DELETE | `/authors/{id}/` | Admin | 409 `author_in_use` if any book lists the author |
 
+#### Discovery: reviews, wish list, read-next (added with the shelf experience)
+
+Book list and detail rows also carry `rating_avg` (null when unreviewed), `rating_count`, `is_favorite`
+(always false for visitors), `cover_image` (uploaded file, else the external `cover_url`) and `pages`.
+List extras: `?favorite=true` (the caller's wish list), `?min_rating=4`, `?ordering=-rating_avg`.
+
+| Method | Path | Who | Result |
+|---|---|---|---|
+| GET | `/books/{id}/reviews/` | public | paginated reviews, newest first (`reviewer` is "First L.", never the e-mail) |
+| POST | `/books/{id}/reviews/` | signed in | `{rating 1-5, comment?}`; one review per user and book: 201 created, 200 replaced |
+| DELETE | `/reviews/{id}/` | author or staff | 204 (404 for other members' reviews) |
+| PUT / DELETE | `/books/{id}/favorite/` | signed in | `{is_favorite}`; both idempotent |
+| GET | `/books/{id}/related/` | public | up to 6 `{reason: readers\|author\|category, book}` |
+
+Management commands: `seed_bookshelf` (five demo novels, idempotent) and `fetch_covers [--dry-run] [--force] [--limit N]`
+(Open Library; stores only the cover URL).
+
 ### 4.4 Loans
 
 | Method | Path | Permission | Notes |

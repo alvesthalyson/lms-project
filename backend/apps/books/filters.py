@@ -17,6 +17,8 @@ class BookFilter(df.FilterSet):
     year_to = df.NumberFilter(field_name="publication_year", lookup_expr="lte")
     available = df.BooleanFilter(method="filter_available")
     is_active = df.BooleanFilter(method="filter_is_active")
+    favorite = df.BooleanFilter(method="filter_favorite")
+    min_rating = df.NumberFilter(method="filter_min_rating")
 
     class Meta:
         model = Book
@@ -41,3 +43,15 @@ class BookFilter(df.FilterSet):
     def filter_is_active(self, queryset, name, value):
         # Only staff may look at withdrawn titles; the view enforces the default.
         return queryset.filter(is_active=value)
+
+    def filter_favorite(self, queryset, name, value):
+        """?favorite=true: only the signed-in reader's wish list (nothing for a visitor)."""
+        user = self.request.user
+        if not value:
+            return queryset
+        if not user.is_authenticated:
+            return queryset.none()
+        return queryset.filter(favorites__user=user)
+
+    def filter_min_rating(self, queryset, name, value):
+        return queryset.filter(rating_avg__gte=value)

@@ -1,10 +1,11 @@
-from django.db.models import QuerySet
-from rest_framework import status, viewsets
+from django.db.models import Avg, Count, Exists, OuterRef, QuerySet, Value, BooleanField
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from apps.books import filters
-from apps.books.models import Author, Book, BookCopy, Category
+from apps.books.models import Author, Book, BookCopy, Category, Favorite, Review
 from apps.books.serializers import (
     AuthorSerializer,
     BookCopyCreateSerializer,
@@ -14,8 +15,11 @@ from apps.books.serializers import (
     BookListSerializer,
     BookWriteSerializer,
     CategorySerializer,
+    RelatedBookSerializer,
+    ReviewSerializer,
+    ReviewWriteSerializer,
 )
-from apps.books.services import book_service
+from apps.books.services import book_service, discovery_service
 from apps.core.permissions import IsAdmin, IsLibrarian, IsLibrarianOrReadOnly
 from apps.users.models import Role
 
@@ -63,17 +67,38 @@ class AuthorViewSet(_CatalogueViewSet):
 
 class BookViewSet(_CatalogueViewSet):
     filterset_class = filters.BookFilter
-    ordering_fields = ["title", "created_at", "publication_year", "available_copies"]
+    ordering_fields = ["title", "created_at", "publication_year", "available_copies", "rating_avg"]
     ordering = ["title", "id"]
 
     def get_queryset(self) -> QuerySet[Book]:
-        queryset = Book.objects.select_related("category").prefetch_related("authors")
+        queryset = (
+            Book.objects.select_related("category")
+            .prefetch_related("authors")
+            .annotate(rating_avg=Avg("reviews__rating"), rating_count=Count("reviews", distinct=True))
+        )
+        user = self.request.user
+        if user.is_authenticated:
+            queryset = queryset.annotate(
+                is_favorite=Exists(Favorite.objects.filter(user=user, book=OuterRef("pk")))
+            )
+        else:
+            queryset = queryset.annotate(is_favorite=Value(False, output_field=BooleanField()))
         if _is_staff(self.request):
             # Staff see withdrawn titles only when they ask (?is_active=false).
             if "is_active" not in self.request.query_params and self.action == "list":
                 queryset = queryset.filter(is_active=True)
             return queryset
         return queryset.filter(is_active=True)
+
+    def get_permissions(self):
+        # Reviews: anyone reads, signed-in users write. Wish list: signed-in only. Related: public.
+        if self.action == "reviews":
+            return [AllowAny()] if self.request.method == "GET" else [IsAuthenticated()]
+        if self.action == "favorite":
+            return [IsAuthenticated()]
+        if self.action == "related":
+            return [AllowAny()]
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -121,6 +146,57 @@ class BookViewSet(_CatalogueViewSet):
         serializer.is_valid(raise_exception=True)
         copy = book_service.add_copy(book, serializer.validated_data)
         return Response(BookCopySerializer(copy).data, status=status.HTTP_201_CREATED)
+
+
+    @action(detail=True, methods=["get", "post"], url_path="reviews")
+    def reviews(self, request, pk=None):
+        """GET: the book's reviews, newest first. POST: add or edit the caller's own review."""
+        book = self.get_object()
+        if request.method == "GET":
+            queryset = book.reviews.select_related("user")
+            page = self.paginate_queryset(queryset)
+            data = ReviewSerializer(page, many=True, context={"request": request}).data
+            return self.get_paginated_response(data)
+        serializer = ReviewWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        review, created = discovery_service.upsert_review(
+            user=request.user, book=book, **serializer.validated_data
+        )
+        review = Review.objects.select_related("user").get(pk=review.pk)
+        return Response(
+            ReviewSerializer(review, context={"request": request}).data,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["put", "delete"], url_path="favorite")
+    def favorite(self, request, pk=None):
+        """PUT adds the book to the caller's wish list, DELETE removes it. Both are idempotent."""
+        book = self.get_object()
+        wanted = request.method == "PUT"
+        discovery_service.set_favorite(user=request.user, book=book, wanted=wanted)
+        return Response({"is_favorite": wanted})
+
+    @action(detail=True, methods=["get"], url_path="related")
+    def related(self, request, pk=None):
+        """'Read next' suggestions: readers also borrowed, same author, same category."""
+        book = self.get_object()
+        picks = discovery_service.recommendations(book, limit=6)
+        ids = [b.pk for b, _ in picks]
+        annotated = {b.pk: b for b in self.get_queryset().filter(pk__in=ids)}
+        body = [{"reason": reason, "book": annotated[b.pk]} for b, reason in picks if b.pk in annotated]
+        return Response(
+            RelatedBookSerializer(body, many=True, context={"request": request}).data
+        )
+
+
+class ReviewViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """DELETE /reviews/{id}/: the author or staff. (Reading and writing go through the book.)"""
+
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Review.objects.all()
+        return queryset if _is_staff(self.request) else queryset.filter(user=self.request.user)
 
 
 class CopyViewSet(viewsets.GenericViewSet):

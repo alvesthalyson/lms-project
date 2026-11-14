@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import admin, messages
 from django.db.models import Count
 
-from apps.books.models import Author, Book, BookCopy, Category, CopyStatus
+from apps.books.models import Author, Book, BookCopy, Category, CopyStatus, Favorite, Review
 from apps.books.services.inventory_service import lock_book, sync_book_counts
 from apps.core.admin_utils import ReadOnlyAdmin
 
@@ -97,3 +97,24 @@ class BookCopyAdmin(ReadOnlyAdmin):
     list_filter = ("status",)
     search_fields = ("barcode", "book__title", "book__isbn")
     list_select_related = ("book",)
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    """Moderation: staff can remove abusive comments; ratings are the readers' own."""
+
+    list_display = ("book", "user", "rating", "created_at")
+    list_filter = ("rating",)
+    search_fields = ("book__title", "user__email", "comment")
+    list_select_related = ("book", "user")
+    readonly_fields = ("book", "user", "rating", "created_at", "updated_at")
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(ReadOnlyAdmin):
+    list_display = ("user", "book", "created_at")
+    search_fields = ("book__title", "user__email")
+    list_select_related = ("book", "user")
