@@ -59,7 +59,11 @@ async function openShelf() {
 beforeEach(() => {
   vi.mocked(listCategories).mockResolvedValue(page([POETRY]));
   vi.mocked(listBooks).mockResolvedValue(page([book(), book({ id: 2, title: "Poesias Completas", rating_avg: null, rating_count: 0 })]));
-  vi.mocked(getBook).mockImplementation(async (id) => ({ ...book({ id }), description: "Versos de uma vida.", created_at: "", updated_at: "" }) as BookDetail);
+  // The detail endpoint answers for whichever book is asked, with that book's own title.
+  const known: Book[] = [book(), book({ id: 2, title: "Poesias Completas" }), book({ id: 7, title: "Sentimento do Mundo" })];
+  vi.mocked(getBook).mockImplementation(
+    async (id) => ({ ...(known.find((b) => b.id === id) ?? book({ id })), description: "Versos de uma vida.", created_at: "", updated_at: "" }) as BookDetail,
+  );
   vi.mocked(listReviews).mockResolvedValue(page([{ id: 5, reviewer: "Bia S.", rating: 4, comment: "Lindo", created_at: "2026-11-10T00:00:00Z", is_mine: false }]));
   vi.mocked(listRelated).mockResolvedValue([{ reason: "author", book: book({ id: 7, title: "Sentimento do Mundo" }) }]);
 });
@@ -114,7 +118,7 @@ describe("book panel", () => {
     const { panel } = await openAntologia(null);
 
     expect(await within(panel).findByText("Versos de uma vida.")).toBeInTheDocument();
-    expect(within(panel).getByRole("img", { name: /Nota 4,0 de 5/ })).toBeInTheDocument();
+    expect(within(panel).getByRole("img", { name: "Nota 4,0 de 5 (2)" })).toBeInTheDocument();
     expect(await within(panel).findByText("Lindo")).toBeInTheDocument();
     expect(await within(panel).findByRole("button", { name: "Abrir Sentimento do Mundo" })).toBeInTheDocument();
     expect(within(panel).getByText(/Entre na sua conta para avaliar/)).toBeInTheDocument();
