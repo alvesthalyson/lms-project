@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { useBooks } from "@/features/books/hooks";
+import { useT } from "@/lib/i18n/useT";
 import type { Book, BookListParams } from "@/features/books/types";
 
 import { BookPanel } from "./BookPanel";
@@ -32,6 +33,7 @@ function isTyping(target: EventTarget | null): boolean {
  * It is a modal dialog: Esc, the X button and a click outside close it, and focus returns to the shelf.
  */
 export function ShelfInspector({ target, onClose }: ShelfInspectorProps) {
+  const { t } = useT();
   const [params, setParams] = useSearchParams();
   const view = params.get("vista") === "lista" ? "lista" : "estante";
   const q = params.get("q") ?? "";
@@ -89,14 +91,14 @@ export function ShelfInspector({ target, onClose }: ShelfInspectorProps) {
   return (
     <div className="hm-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="hm-panel" role="dialog" aria-modal="true" aria-labelledby="hm-panel-title">
-        <button ref={closeRef} type="button" className="hm-close" onClick={onClose} aria-label="Voltar à sala">
+        <button ref={closeRef} type="button" className="hm-close" onClick={onClose} aria-label={t("shelf.back")}>
           ×
         </button>
         <div className="hm-catalogue">
           <header>
             <p className="hm-kicker">{target.kicker}</p>
             <h2 id="hm-panel-title">{target.title}</h2>
-            <p className="hm-count">{isLoading ? "…" : total === 1 ? "1 livro" : `${total} livros`}</p>
+            <p className="hm-count">{isLoading ? "…" : total === 1 ? t("shelf.countOne") : t("shelf.countMany", { n: total })}</p>
           </header>
 
           <div className="hm-toolbar">
@@ -106,31 +108,31 @@ export function ShelfInspector({ target, onClose }: ShelfInspectorProps) {
               className="hm-search"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Buscar nesta estante  ( / )"
-              aria-label="Buscar nesta estante"
+              placeholder={t("shelf.searchPlaceholder")}
+              aria-label={t("shelf.searchLabel")}
             />
-            <div className="hm-views" role="group" aria-label="Modo de exibição">
+            <div className="hm-views" role="group" aria-label={t("shelf.viewGroup")}>
               {(["estante", "lista"] as const).map((v) => (
                 <button key={v} type="button" aria-pressed={view === v} onClick={() => setParam("vista", v === "lista" ? "lista" : null)}>
-                  {v === "estante" ? "Estante" : "Lista"}
+                  {v === "estante" ? t("shelf.view3d") : t("shelf.viewList")}
                 </button>
               ))}
             </div>
             <button type="button" className="hm-surprise" disabled={books.length === 0} onClick={() => setSelected(books[Math.floor(Math.random() * books.length)]!)}>
-              Surpreenda-me (R)
+              {t("shelf.surprise")}
             </button>
           </div>
 
-          {isLoading && <p className="hm-note" role="status">Procurando na estante…</p>}
+          {isLoading && <p className="hm-note" role="status">{t("shelf.loading")}</p>}
           {isError && (
             <p className="hm-note" role="alert">
-              Não foi possível abrir esta estante.{" "}
+              {t("shelf.error")}{" "}
               <button type="button" className="hm-link" onClick={() => void refetch()}>
-                Tentar de novo
+                {t("shelf.retry")}
               </button>
             </p>
           )}
-          {!isLoading && !isError && books.length === 0 && <p className="hm-note">Esta estante está vazia por enquanto.</p>}
+          {!isLoading && !isError && books.length === 0 && <p className="hm-note">{t("shelf.empty")}</p>}
 
           {books.length > 0 && view === "estante" && <Shelf3D books={books} onOpen={setSelected} />}
           {books.length > 0 && view === "lista" && (
@@ -139,12 +141,12 @@ export function ShelfInspector({ target, onClose }: ShelfInspectorProps) {
                 <li key={book.id}>
                   <button type="button" className="hm-title hm-title--btn" onClick={() => setSelected(book)}>{book.title}</button>
                   <span className="hm-author">
-                    {book.authors.map((a) => a.name).join(", ") || "Autor desconhecido"}
+                    {book.authors.map((a) => a.name).join(", ") || t("book.unknownAuthor")}
                     {book.publication_year ? ` · ${book.publication_year}` : ""}
                   </span>
                   <span className="hm-leader" aria-hidden />
                   <span className="hm-stock" data-available={book.is_available}>
-                    {book.is_available ? `${book.available_copies} de ${book.total_copies} disponíveis` : "Emprestado"}
+                    {book.is_available ? t("book.availableOf", { a: book.available_copies, t: book.total_copies }) : t("book.loaned")}
                   </span>
                   <ReserveAction book={book} />
                 </li>
@@ -153,8 +155,8 @@ export function ShelfInspector({ target, onClose }: ShelfInspectorProps) {
           )}
 
           <footer>
-            {total > books.length && <span>Mostrando {books.length} de {total}. </span>}
-            <Link to="/books" className="hm-link">Ver o catálogo completo</Link>
+            {total > books.length && <span>{t("shelf.showing", { shown: books.length, total })} </span>}
+            <Link to="/books" className="hm-link">{t("shelf.fullCatalogue")}</Link>
           </footer>
         </div>
       </section>

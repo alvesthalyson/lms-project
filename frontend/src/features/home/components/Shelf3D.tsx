@@ -2,6 +2,8 @@ import { useEffect, useState, type CSSProperties } from "react";
 
 import type { Book } from "@/features/books/types";
 
+import { useT } from "@/lib/i18n/useT";
+
 import { sampleCoverTint, tintStyle } from "../coverTint";
 import { Stars } from "../Stars";
 
@@ -10,6 +12,7 @@ const PER_SHELF = 6;
 /** One slanted 3D book. The cover colour tints its glow once the image has been sampled. */
 function Book3D({ book, index, onOpen }: { book: Book; index: number; onOpen: (book: Book) => void }) {
   const [tint, setTint] = useState<string | null>(null);
+  const { t } = useT();
   useEffect(() => {
     let alive = true;
     if (book.cover_image) void sampleCoverTint(book.cover_image).then((t) => alive && setTint(t));
@@ -18,7 +21,7 @@ function Book3D({ book, index, onOpen }: { book: Book; index: number; onOpen: (b
     };
   }, [book.cover_image]);
 
-  const author = book.authors.map((a) => a.name).join(", ") || "Autor desconhecido";
+  const author = book.authors.map((a) => a.name).join(", ") || t("book.unknownAuthor");
   return (
     <li className="sh-slot" style={{ "--i": index } as CSSProperties}>
       <button
@@ -40,7 +43,7 @@ function Book3D({ book, index, onOpen }: { book: Book; index: number; onOpen: (b
           <strong>{book.title}</strong>
           <span>{author}</span>
           <Stars value={book.rating_avg} count={book.rating_count} />
-          <em data-available={book.is_available}>{book.is_available ? `${book.available_copies} disponíveis` : "Emprestado"}</em>
+          <em data-available={book.is_available}>{book.is_available ? t("book.availableN", { n: book.available_copies }) : t("book.loaned")}</em>
         </span>
       </button>
     </li>

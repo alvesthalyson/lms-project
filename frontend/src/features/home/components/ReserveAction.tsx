@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks";
 import type { Book } from "@/features/books/types";
 import { useReserveBook } from "@/features/reservations/hooks";
+import { useT } from "@/lib/i18n/useT";
 import { toast } from "@/lib/toast";
 
 /**
@@ -12,12 +13,13 @@ import { toast } from "@/lib/toast";
 export function ReserveAction({ book, className = "hm-reserve" }: { book: Book; className?: string }) {
   const { user } = useAuth();
   const reserve = useReserveBook();
+  const { t } = useT();
   if (book.is_available || book.total_copies === 0) return null;
 
   if (!user) {
     return (
-      <Link to="/login" state={{ from: { pathname: "/" } }} className={className} aria-label={`Entrar para reservar ${book.title}`}>
-        Entrar para reservar
+      <Link to="/login" state={{ from: { pathname: "/" } }} className={className} aria-label={t("reserve.signInAria", { title: book.title })}>
+        {t("reserve.signIn")}
       </Link>
     );
   }
@@ -27,7 +29,7 @@ export function ReserveAction({ book, className = "hm-reserve" }: { book: Book; 
     <button
       type="button"
       className={className}
-      aria-label={`Reservar ${book.title}`}
+      aria-label={t("reserve.aria", { title: book.title })}
       disabled={reserve.isPending}
       onClick={() =>
         reserve.mutate(
@@ -36,14 +38,14 @@ export function ReserveAction({ book, className = "hm-reserve" }: { book: Book; 
             onSuccess: (reservation) =>
               toast.success(
                 reservation.queue_position
-                  ? `Reserva feita: você é o nº ${reservation.queue_position} da fila para “${book.title}”.`
-                  : `Reserva feita: “${book.title}”.`,
+                  ? t("reserve.doneQueue", { pos: reservation.queue_position, title: book.title })
+                  : t("reserve.done", { title: book.title }),
               ),
           },
         )
       }
     >
-      Reservar
+      {t("reserve.button")}
     </button>
   );
 }

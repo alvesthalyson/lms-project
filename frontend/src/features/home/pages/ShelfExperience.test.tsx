@@ -166,3 +166,34 @@ describe("cover tint fallback", () => {
     expect(hueFromTitle("Kokoro")).toBeLessThan(360);
   });
 });
+
+describe("language and theme", () => {
+  it("switch the shelf to English and Japanese from the account bar", async () => {
+    const { usePrefs } = await import("@/lib/i18n/store");
+    usePrefs.setState({ lang: "pt", theme: "dark" });
+    renderHome(null);
+    const u = userEvent.setup();
+
+    await u.selectOptions(await screen.findByRole("combobox", { name: "Idioma" }), "en");
+    expect(await screen.findByRole("link", { name: "Sign in" })).toBeInTheDocument();
+    const [shelf] = await screen.findAllByRole("button", { name: "Poesia" });
+    await u.click(shelf!);
+    const dialog = await screen.findByRole("dialog");
+    expect(await within(dialog).findByRole("button", { name: "Surprise me (R)" })).toBeInTheDocument();
+
+    await u.selectOptions(screen.getByRole("combobox", { name: "Language" }), "ja");
+    expect(await within(dialog).findByRole("button", { name: "おまかせ (R)" })).toBeInTheDocument();
+    usePrefs.setState({ lang: "pt" });
+  });
+
+  it("toggles the theme on <html>", async () => {
+    const { usePrefs } = await import("@/lib/i18n/store");
+    usePrefs.setState({ lang: "pt", theme: "dark" });
+    renderHome(null);
+    const u = userEvent.setup();
+
+    await u.click(await screen.findByRole("button", { name: "Tema claro" }));
+    expect(document.documentElement.dataset.theme).toBe("light");
+    usePrefs.setState({ theme: "dark" });
+  });
+});

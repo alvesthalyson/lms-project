@@ -257,3 +257,32 @@
   .b3d:hover .b3d-body, .b3d:focus-visible .b3d-body { transform: rotateY(-28deg); }
   .bp, .bp-backdrop, .sh-peek { animation-duration: 0.01s; transition: none; }
 }
+
+/* language picker in the account bar */
+.hm-lang { appearance: none; padding-right: 14px; color: inherit; }
+.hm-lang option { color: #1a1008; background: #f4ead2; }
+
+/* ───────── Light theme (<html data-theme="light">); dark is the default look ───────── */
+:root[data-theme="light"] .hm-panel::before { background: rgba(250, 243, 226, 0.84); }
+:root[data-theme="light"] .hm-close { background: rgba(250, 243, 226, 0.95); color: #5a2d0e; border-color: rgba(90, 55, 15, 0.7); }
+:root[data-theme="light"] .bp-backdrop { background: rgba(60, 40, 15, 0.35); }
+:root[data-theme="light"] .bp {
+  color: #2e1c08;
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--tint) 38%, transparent), transparent 62%), rgba(250, 243, 226, 0.97);
+  border-left-color: rgba(122, 79, 26, 0.7);
+  box-shadow: -20px 0 60px rgba(60, 40, 15, 0.35);
+}
+:root[data-theme="light"] .bp-body .hm-kicker,
+:root[data-theme="light"] .bp-body h3,
+:root[data-theme="light"] .bp .hm-link { color: #7a4f1a; }
+:root[data-theme="light"] .bp-btn { color: #4a2508; border-color: rgba(90, 55, 15, 0.8); background: rgba(90, 55, 15, 0.1); }
+:root[data-theme="light"] .bp-stock { color: #9a3b22; }
+:root[data-theme="light"] .bp-stock[data-available="true"] { color: #2f6b1f; }
+:root[data-theme="light"] .bp-form textarea { color: #2e1c08; background: rgba(255, 255, 255, 0.55); border-color: rgba(90, 55, 15, 0.5); }
+:root[data-theme="light"] .bp-reviews li { border-bottom-color: rgba(90, 55, 15, 0.3); }
+:root[data-theme="light"] .bp-related button { border-color: rgba(90, 55, 15, 0.35); background: rgba(255, 255, 255, 0.4); }
+:root[data-theme="light"] .bp-picker button, :root[data-theme="light"] .sh-stars { color: rgba(90, 55, 15, 0.3); }
+:root[data-theme="light"] .sh-peek { background: rgba(250, 243, 226, 0.97); color: #2e1c08; border-color: rgba(90, 55, 15, 0.6); }
+:root[data-theme="light"] .sh-peek em { color: #9a3b22; }
+:root[data-theme="light"] .sh-peek em[data-available="true"] { color: #2f6b1f; }
+:root[data-theme="light"] .sh-row { background: linear-gradient(to bottom, rgba(255, 245, 220, 0.4), rgba(160, 110, 40, 0.18)); }
