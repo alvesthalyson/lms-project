@@ -11,11 +11,12 @@
       powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step frontend
       powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step run   # starts both servers
       powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step demo  # demo accounts + sample loans
+      powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step shelf # Bookshelf novels + covers from Open Library
 
   It stops at the first failing step and says which one it was. Details: docs\SPRINT0.md
 #>
 param(
-  [ValidateSet("all", "backend", "frontend", "run", "demo")]
+  [ValidateSet("all", "backend", "frontend", "run", "demo", "shelf")]
   [string]$Step = "all"
 )
 
@@ -161,6 +162,18 @@ function Invoke-DemoUsers {
   try { Invoke-Native $VenvPython @("manage.py", "seed_demo_users") } finally { Pop-Location }
 }
 
+function Invoke-Shelf {
+  Write-Step "Bookshelf novels and their covers (needs internet for the covers)"
+  if (-not (Test-Path $VenvPython)) { throw "Run the backend step first: scripts\sprint0.ps1 -Step backend" }
+  Import-DotEnv (Join-Path $BackendDir ".env")
+  Push-Location $BackendDir
+  try {
+    Invoke-Native $VenvPython @("manage.py", "migrate", "--noinput")
+    Invoke-Native $VenvPython @("manage.py", "seed_bookshelf")
+    Invoke-Native $VenvPython @("manage.py", "fetch_covers")
+  } finally { Pop-Location }
+}
+
 function Start-Servers {
   Write-Step "start the backend (http://localhost:8000) and the frontend (http://localhost:5173)"
   if (-not (Test-Path $VenvPython)) { throw "Run the backend step first: scripts\sprint0.ps1 -Step backend" }
@@ -176,6 +189,7 @@ try {
     "frontend" { Test-Prerequisites; Invoke-Frontend }
     "run"      { Start-Servers; return }
     "demo"     { Invoke-DemoUsers; return }
+    "shelf"    { Invoke-Shelf; return }
     default    { Test-Prerequisites; Invoke-Backend; Invoke-Frontend }
   }
   Write-Host ""
