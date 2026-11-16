@@ -286,3 +286,15 @@
 :root[data-theme="light"] .sh-peek em { color: #9a3b22; }
 :root[data-theme="light"] .sh-peek em[data-available="true"] { color: #2f6b1f; }
 :root[data-theme="light"] .sh-row { background: linear-gradient(to bottom, rgba(255, 245, 220, 0.4), rgba(160, 110, 40, 0.18)); }
+
+/* ───────── Rooms whose picture already has the names painted on signs ───────── */
+/* the text stays for screen readers and tests, but is not drawn over the painted sign */
+.hm-label--painted { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.hm-shelf--sign { border-radius: 3px; }
+.hm-shelf--sign:hover, .hm-shelf--sign:focus-visible {
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 215, 130, 0.3), rgba(255, 180, 80, 0.1) 70%, transparent 100%);
+  box-shadow: 0 0 0 2px rgba(255, 226, 150, 0.95), 0 0 22px rgba(255, 196, 96, 0.75), 0 0 54px rgba(255, 180, 80, 0.4);
+}
+/* the painted picture is already bright and balanced: much lighter shade and vignette than the plain pictures */
+.hm-root--signs .hm-shade { background: rgba(0, 0, 0, 0.04); }
+.hm-root--signs .hm-vignette { background: radial-gradient(ellipse at 50% 50%, transparent 62%, rgba(0, 0, 0, 0.38) 100%); }

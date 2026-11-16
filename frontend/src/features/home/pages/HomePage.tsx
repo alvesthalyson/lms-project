@@ -1,4 +1,4 @@
-import { useCallback, useState, type CSSProperties } from "react";
+import { useCallback, useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 
 import { Toaster } from "@/components/Toaster";
@@ -9,7 +9,7 @@ import "@/features/library/library.css";
 
 import { AccountBar } from "../components/AccountBar";
 import { ShelfInspector, type InspectorTarget } from "../components/ShelfInspector";
-import { FIRST_ROOM, firstCategoryIndex, HOME_ROOMS, TOTAL_SHELVES, type Hotspot, type RoomId } from "../config";
+import { FIRST_ROOM, HOME_ROOMS, placeCategories, type Hotspot, type RoomId } from "../config";
 import "../home.css";
 
 /** Position and label tilt of a hotspot, as inline style (percentages of the picture). */
@@ -32,14 +32,18 @@ function spotStyle(spot: Hotspot): CSSProperties {
  */
 export function HomePage() {
   const { data } = useCategories();
-  const categories = data?.results ?? [];
+  const categories = useMemo(() => data?.results ?? [], [data]);
   const [roomId, setRoomId] = useState<RoomId>(FIRST_ROOM);
   const [open, setOpen] = useState<InspectorTarget | null>(null);
   const close = useCallback(() => setOpen(null), []);
 
   const room = HOME_ROOMS[roomId];
-  const first = firstCategoryIndex(roomId);
-  const placed = categories.slice(first, first + room.shelves.length);
+  // Which category stands on which bookcase: by painted sign where the picture has one, else in list order.
+  const { byRoom, placed } = useMemo(() => placeCategories(categories), [categories]);
+  const placements = byRoom[roomId];
+  const signs = room.signs === true;
+  const shelfClass = signs ? "hm-shelf hm-shelf--sign" : "hm-shelf";
+  const labelClass = signs ? "hm-label hm-label--painted" : "hm-label";
 
   const openCategory = (category: Category): void =>
     setOpen({ title: category.name, kicker: "Catálogo da estante", query: { category: category.id, page_size: 50, ordering: "title" } });
@@ -47,23 +51,19 @@ export function HomePage() {
     setOpen({ title: "Indicação", kicker: "Indicações da casa", query: { available: true, ordering: "-created_at", page_size: 12 } });
 
   return (
-    <main className="hm-root">
+    <main className={signs ? "hm-root hm-root--signs" : "hm-root"}>
       {/* The "cover" box: as large as needed to fill the screen, centred, same aspect as the picture.
           `key` restarts the fade-in when the visitor changes room. */}
       <div key={room.id} className="hm-room" style={{ backgroundImage: `url(${room.background})`, "--hm-aspect": room.aspect } as CSSProperties}>
-        {placed.map((category, i) => {
-          const spot = room.shelves[i];
-          if (!spot) return null;
-          return (
-            <button key={category.id} type="button" className="hm-shelf" style={spotStyle(spot)} onClick={() => openCategory(category)} aria-haspopup="dialog">
-              <span className="hm-label">{category.name}</span>
-            </button>
-          );
-        })}
+        {placements.map(({ spot, category }) => (
+          <button key={category.id} type="button" className={shelfClass} style={spotStyle(spot)} onClick={() => openCategory(category)} aria-haspopup="dialog">
+            <span className={labelClass}>{category.name}</span>
+          </button>
+        ))}
 
         {room.picks && (
-          <button type="button" className="hm-shelf" style={spotStyle(room.picks)} onClick={openPicks} aria-haspopup="dialog">
-            <span className="hm-label">Indicação</span>
+          <button type="button" className={shelfClass} style={spotStyle(room.picks)} onClick={openPicks} aria-haspopup="dialog">
+            <span className={labelClass}>Indicação</span>
           </button>
         )}
 
@@ -81,7 +81,7 @@ export function HomePage() {
           </button>
         ))}
 
-        {roomId !== FIRST_ROOM && placed.length === 0 && (
+        {roomId !== FIRST_ROOM && placements.length === 0 && (
           <p className="hm-empty" role="status">
             Ainda não há estantes nesta sala.
           </p>
@@ -94,8 +94,8 @@ export function HomePage() {
 
       {/* Categories that did not fit a bookcase (all of them on narrow screens, where the picture is cropped), plus the portals. */}
       <nav className="hm-dock" aria-label="Todas as estantes">
-        {categories.map((category, i) => (
-          <button key={category.id} type="button" className="hm-pill" data-overflow={i >= TOTAL_SHELVES ? "" : undefined} onClick={() => openCategory(category)}>
+        {categories.map((category) => (
+          <button key={category.id} type="button" className="hm-pill" data-overflow={placed.has(category.id) ? undefined : ""} onClick={() => openCategory(category)}>
             {category.name}
           </button>
         ))}
