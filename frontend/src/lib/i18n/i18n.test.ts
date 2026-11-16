@@ -3,8 +3,22 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { DICTIONARIES, LANGUAGES } from "./dictionaries";
 import { initialLang, translate, tr, usePrefs } from "./store";
 
+/** Node 25+ ships its own `localStorage`, which clashes with jsdom's: use a plain in-memory one. */
+function installMemoryStorage(): void {
+  const data = new Map<string, string>();
+  Object.defineProperty(window, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => void data.set(key, String(value)),
+      removeItem: (key: string) => void data.delete(key),
+      clear: () => data.clear(),
+    },
+  });
+}
+
 beforeEach(() => {
-  window.localStorage.clear();
+  installMemoryStorage();
   usePrefs.setState({ lang: "pt", theme: "dark" });
 });
 
