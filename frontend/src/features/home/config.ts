@@ -66,7 +66,7 @@ const LIBRARY: Room = {
     { id: "sign-programacao", category: "programacao", left: 0.893, top: 0.03, width: 0.105, height: 0.13, rotate: 0, skewY: 0 },
     { id: "sign-ficcao", category: "ficcao", left: 0.872, top: 0.388, width: 0.074, height: 0.085, rotate: 0, skewY: 0 },
     { id: "sign-ciencia", category: "ciencia", left: 0.724, top: 0.425, width: 0.056, height: 0.05, rotate: 0, skewY: 0 },
-    { id: "sign-historia", category: "historia", left: 0.724, top: 0.49, width: 0.062, height: 0.046, rotate: 0, skewY: 0 },
+    { id: "sign-historia", category: "historia", left: 0.621, top: 0.475, width: 0.054, height: 0.044, rotate: 0, skewY: 0 },
     { id: "sign-filosofia", category: "filosofia", left: 0.383, top: 0.49, width: 0.062, height: 0.046, rotate: 0, skewY: 0 },
     { id: "sign-romance", category: "romance", left: 0.857, top: 0.7, width: 0.07, height: 0.065, rotate: 0, skewY: 0 },
   ],

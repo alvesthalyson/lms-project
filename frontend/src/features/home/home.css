@@ -298,3 +298,14 @@
 /* the painted picture is already bright and balanced: much lighter shade and vignette than the plain pictures */
 .hm-root--signs .hm-shade { background: rgba(0, 0, 0, 0.04); }
 .hm-root--signs .hm-vignette { background: radial-gradient(ellipse at 50% 50%, transparent 62%, rgba(0, 0, 0, 0.38) 100%); }
+
+/* A painted picture is shown whole on landscape screens: scaled to the screen width, with dark bars above and
+   below when the screen is narrower than the picture, so no sign (PROGRAMAÇÃO is at the very edge) is cut off.
+   The bars fade softly into the picture. On wider screens it is still cover-fitted. Phones keep cover-fit. */
+@media (min-aspect-ratio: 7/5) {
+  .hm-root--signs .hm-room {
+    width: 100vw;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 3%, #000 97%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 3%, #000 97%, transparent 100%);
+  }
+}
