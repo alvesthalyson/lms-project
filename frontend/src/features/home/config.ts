@@ -34,20 +34,24 @@ export interface Hotspot {
   shape?: ReadonlyArray<readonly [number, number]>;
 }
 
-/** Pixel size of the picture of the signed room, in which the outlines below were traced. */
+/** Pixel size of the pictures, in which the outlines below were traced. */
 const LIBRARY_PX = { w: 1850, h: 850 } as const;
+const UPSTAIRS_PX = { w: 1672, h: 941 } as const;
 
 /** Turn an outline traced in picture pixels into a hotspot box plus `shape` (fractions of the picture). */
-function traced(points: ReadonlyArray<readonly [number, number]>): Pick<Hotspot, "left" | "top" | "width" | "height" | "shape"> {
+function traced(
+  points: ReadonlyArray<readonly [number, number]>,
+  px: { readonly w: number; readonly h: number } = LIBRARY_PX,
+): Pick<Hotspot, "left" | "top" | "width" | "height" | "shape"> {
   const xs = points.map(([x]) => x);
   const ys = points.map(([, y]) => y);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   return {
-    left: x0 / LIBRARY_PX.w,
-    top: y0 / LIBRARY_PX.h,
-    width: (x1 - x0) / LIBRARY_PX.w,
-    height: (y1 - y0) / LIBRARY_PX.h,
-    shape: points.map(([x, y]) => [x / LIBRARY_PX.w, y / LIBRARY_PX.h] as const),
+    left: x0 / px.w,
+    top: y0 / px.h,
+    width: (x1 - x0) / px.w,
+    height: (y1 - y0) / px.h,
+    shape: points.map(([x, y]) => [x / px.w, y / px.h] as const),
   };
 }
 
@@ -123,7 +127,7 @@ const LIBRARY: Room = {
   ]) },
 };
 
-// The second floor: the blue, magical library, with the same spiral staircase leading back down.
+// The second floor: the blue, magical library, with a round stairwell in the floor leading back down.
 const UPSTAIRS: Room = {
   id: "upstairs",
   background: "/sala-2.jpg",
@@ -133,9 +137,12 @@ const UPSTAIRS: Room = {
     { id: "far-right-bookcase", left: 0.86, top: 0.12, width: 0.07, height: 0.45, rotate: -4, skewY: -3 },
     { id: "gallery-bookcases", left: 0.73, top: 0.08, width: 0.1, height: 0.18, rotate: -4, skewY: -3 },
     { id: "back-left-alcove", left: 0.26, top: 0.45, width: 0.08, height: 0.15, rotate: 2, skewY: 1 },
-    { id: "desk-with-scrolls", left: 0.55, top: 0.7, width: 0.25, height: 0.12, rotate: 5, skewY: 3 },
+    { id: "desk-with-scrolls", left: 0.6, top: 0.7, width: 0.23, height: 0.13, rotate: 5, skewY: 3 },
   ],
-  portals: [{ id: "staircase-down", to: "library", label: "Descer ao andar de baixo", glow: true, left: 0.1, top: 0.42, width: 0.2, height: 0.38, rotate: 0, skewY: 0 }],
+  portals: [
+    // the round stairwell with its balustrade, in the floor: the way back down (clickable along its outline, traced on the 1672x941 picture)
+    { id: "staircase-down", to: "library", label: "Descer ao andar de baixo", glow: true, rotate: 0, skewY: 0, ...traced([[520, 590], [560, 603], [640, 603], [740, 603], [840, 606], [940, 612], [982, 645], [990, 690], [965, 745], [952, 790], [925, 815], [850, 822], [740, 820], [640, 812], [560, 795], [500, 775], [480, 740], [478, 690], [490, 640]], UPSTAIRS_PX) },
+  ],
 };
 
 export const HOME_ROOMS: Readonly<Record<RoomId, Room>> = { library: LIBRARY, upstairs: UPSTAIRS };

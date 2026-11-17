@@ -98,6 +98,6 @@ describe("outlines", () => {
         expect(y).toBeLessThanOrEqual(100.5);
       }
     }
-    expect(shapePoints(HOME_ROOMS.upstairs.portals[0]!)).toBeNull();
+    expect(shapePoints(HOME_ROOMS.upstairs.shelves[0]!)).toBeNull();
   });
 });
