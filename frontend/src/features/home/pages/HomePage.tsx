@@ -6,6 +6,7 @@ import { useCategories } from "@/features/books/hooks";
 import type { Category } from "@/features/books/types";
 import { FilmGrain } from "@/features/library/components/FilmGrain";
 import "@/features/library/library.css";
+import { usePrefs } from "@/lib/i18n/store";
 
 import { AccountBar } from "../components/AccountBar";
 import { ShelfInspector, type InspectorTarget } from "../components/ShelfInspector";
@@ -70,7 +71,9 @@ export function HomePage() {
   const [open, setOpen] = useState<InspectorTarget | null>(null);
   const close = useCallback(() => setOpen(null), []);
 
+  const theme = usePrefs((s) => s.theme);
   const room = HOME_ROOMS[roomId];
+  const background = theme === "dark" && room.backgroundDark ? room.backgroundDark : room.background;
   // Which category stands on which bookcase: by painted sign where the picture has one, else in list order.
   const { byRoom, placed } = useMemo(() => placeCategories(categories), [categories]);
   const placements = byRoom[roomId];
@@ -87,7 +90,7 @@ export function HomePage() {
     <main className={signs ? "hm-root hm-root--signs" : "hm-root"}>
       {/* The "cover" box: as large as needed to fill the screen, centred, same aspect as the picture.
           `key` restarts the fade-in when the visitor changes room. */}
-      <div key={room.id} className="hm-room" style={{ backgroundImage: `url(${room.background})`, "--hm-aspect": room.aspect } as CSSProperties}>
+      <div key={room.id} className="hm-room" style={{ backgroundImage: `url(${background})`, "--hm-aspect": room.aspect } as CSSProperties}>
         {placements.map(({ spot, category }) => (
           <SpotButton key={category.id} spot={spot} className={shelfClass} onClick={() => openCategory(category)} haspopup>
             <span className={labelClass}>{category.name}</span>

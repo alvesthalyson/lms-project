@@ -65,6 +65,8 @@ export interface Portal extends Hotspot {
 export interface Room {
   id: RoomId;
   background: string;
+  /** Picture for the dark theme (a night version of the same scene, so every hotspot stays in place). Defaults to `background`. */
+  backgroundDark?: string;
   /** Width / height of the picture. */
   aspect: number;
   /** Bookcases. Categories from the API are assigned to them in order, across rooms. */
@@ -80,7 +82,8 @@ export interface Room {
 // its sign and is tied to its category by name (see `category`). Outlines are traced on the 1850x850 picture.
 const LIBRARY: Room = {
   id: "library",
-  background: "/biblioteca.jpg",
+  background: "/biblioteca.jpg", // light theme: the warm, bright picture
+  backgroundDark: "/biblioteca-noite.jpg", // dark theme: the same room at night, recoloured
   aspect: 1850 / 850,
   signs: true,
   shelves: [
