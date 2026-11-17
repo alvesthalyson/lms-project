@@ -34,3 +34,32 @@
     @apply bg-background text-foreground antialiased;
   }
 }
+
+/* ───────── Quill cursor (desktop with a mouse only). The tip of the nib is the pointer. ───────── */
+@media (hover: hover) and (pointer: fine) {
+  html,
+  body {
+    cursor: url("/cursors/feather.svg") 3 29, auto;
+  }
+  /* anything clickable: the same feather with a golden nib */
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select,
+  summary,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="submit"],
+  .hm-portal-poly {
+    cursor: url("/cursors/feather-gold.svg") 3 29, pointer !important;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+  textarea {
+    cursor: text !important;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed !important;
+  }
+}

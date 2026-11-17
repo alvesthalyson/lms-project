@@ -9,7 +9,7 @@ import "@/features/library/library.css";
 
 import { AccountBar } from "../components/AccountBar";
 import { ShelfInspector, type InspectorTarget } from "../components/ShelfInspector";
-import { FIRST_ROOM, HOME_ROOMS, placeCategories, type Hotspot, type RoomId } from "../config";
+import { FIRST_ROOM, HOME_ROOMS, placeCategories, portalPoints, type Hotspot, type RoomId } from "../config";
 import "../home.css";
 
 /** Position and label tilt of a hotspot, as inline style (percentages of the picture). */
@@ -67,19 +67,28 @@ export function HomePage() {
           </button>
         )}
 
-        {room.portals.map((portal) => (
-          <button
-            key={portal.id}
-            type="button"
-            className="hm-shelf hm-portal"
-            data-glow={portal.glow ? "" : undefined}
-            style={spotStyle(portal)}
-            onClick={() => setRoomId(portal.to)}
-            aria-label={portal.label}
-          >
-            {!portal.glow && <span className="hm-label">{portal.label}</span>}
-          </button>
-        ))}
+        {room.portals.map((portal) => {
+          const points = portalPoints(portal);
+          return (
+            <button
+              key={portal.id}
+              type="button"
+              className={points ? "hm-shelf hm-portal hm-portal--shaped" : "hm-shelf hm-portal"}
+              data-glow={portal.glow && !points ? "" : undefined}
+              style={spotStyle(portal)}
+              onClick={() => setRoomId(portal.to)}
+              aria-label={portal.label}
+            >
+              {points ? (
+                <svg className="hm-portal-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden focusable="false">
+                  <polygon className="hm-portal-poly" points={points} />
+                </svg>
+              ) : (
+                !portal.glow && <span className="hm-label">{portal.label}</span>
+              )}
+            </button>
+          );
+        })}
 
         {roomId !== FIRST_ROOM && placements.length === 0 && (
           <p className="hm-empty" role="status">

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { categoryKey, HOME_ROOMS, placeCategories, ROOM_ORDER, type Hotspot } from "./config";
+import { categoryKey, HOME_ROOMS, placeCategories, portalPoints, ROOM_ORDER, type Hotspot } from "./config";
 
 function everyHotspot(): Array<[string, Hotspot]> {
   return ROOM_ORDER.flatMap((id) => {
@@ -62,5 +62,31 @@ describe("placeCategories", () => {
     expect(byRoom.library.map((p) => p.category.id)).toEqual([1]);
     expect(byRoom.upstairs.map((p) => p.category.id)).toEqual([2, 3, 4, 5, 6]); // five bookcases upstairs
     expect(placed.has(7)).toBe(false); // only in the dock
+  });
+});
+
+describe("portal outline", () => {
+  const staircase = HOME_ROOMS.library.portals[0]!;
+
+  it("traces the staircase inside its own box", () => {
+    expect(staircase.shape?.length).toBeGreaterThan(8);
+    for (const [x, y] of staircase.shape!) {
+      expect(x).toBeGreaterThanOrEqual(staircase.left - 1e-3);
+      expect(x).toBeLessThanOrEqual(staircase.left + staircase.width + 1e-3);
+      expect(y).toBeGreaterThanOrEqual(staircase.top - 1e-3);
+      expect(y).toBeLessThanOrEqual(staircase.top + staircase.height + 1e-3);
+    }
+  });
+
+  it("turns the outline into 0..100 points of the box, and leaves plain rectangles alone", () => {
+    const points = portalPoints(staircase)!.split(" ").map((p) => p.split(",").map(Number) as [number, number]);
+    expect(points).toHaveLength(staircase.shape!.length);
+    for (const [x, y] of points) {
+      expect(x).toBeGreaterThanOrEqual(-0.5);
+      expect(x).toBeLessThanOrEqual(100.5);
+      expect(y).toBeGreaterThanOrEqual(-0.5);
+      expect(y).toBeLessThanOrEqual(100.5);
+    }
+    expect(portalPoints(HOME_ROOMS.upstairs.portals[0]!)).toBeNull();
   });
 });

@@ -37,6 +37,11 @@ export interface Portal extends Hotspot {
   label: string;
   /** Show only a soft golden glow (no text) instead of a label. */
   glow?: boolean;
+  /**
+   * Outline of the clickable area, as [x, y] fractions of the picture, so a staircase is clickable as a
+   * staircase and not as a rectangle. The hotspot box must be the bounding box of these points.
+   */
+  shape?: ReadonlyArray<readonly [number, number]>;
 }
 
 export interface Room {
@@ -71,8 +76,26 @@ const LIBRARY: Room = {
     { id: "sign-romance", category: "romance", left: 0.857, top: 0.7, width: 0.07, height: 0.065, rotate: 0, skewY: 0 },
   ],
   portals: [
-    // the spiral staircase: no text, just a golden glow
-    { id: "spiral-staircase", to: "upstairs", label: "Subir ao segundo andar", glow: true, left: 0.17, top: 0.3, width: 0.2, height: 0.46, rotate: 0, skewY: 0 },
+    // the spiral staircase, clickable along its own outline (traced on the 1850x850 picture): no text, just a golden glow
+    {
+      id: "spiral-staircase",
+      to: "upstairs",
+      label: "Subir ao segundo andar",
+      glow: true,
+      left: 0.1481,
+      top: 0.2471,
+      width: 0.2357,
+      height: 0.5482,
+      rotate: 0,
+      skewY: 0,
+      shape: [
+        [0.2962, 0.2471], [0.3459, 0.2494], [0.3741, 0.2824], [0.3838, 0.3412], [0.3805, 0.3941], [0.3632, 0.4353],
+        [0.3405, 0.4647], [0.3216, 0.5], [0.3092, 0.5412], [0.3005, 0.5765], [0.3005, 0.6588], [0.3092, 0.7176],
+        [0.3243, 0.7529], [0.3395, 0.7788], [0.3243, 0.7953], [0.1622, 0.7953], [0.1481, 0.7859], [0.1622, 0.7353],
+        [0.1638, 0.6588], [0.1622, 0.5882], [0.16, 0.5529], [0.1784, 0.5318], [0.2011, 0.5035], [0.2259, 0.4706],
+        [0.2497, 0.4329], [0.267, 0.3882], [0.2746, 0.3412], [0.2784, 0.2941], [0.2865, 0.2612],
+      ],
+    },
   ],
   // the open book on the foreground desk, with "Indicação" written on its pages. It is not a category.
   picks: { id: "open-book", left: 0.108, top: 0.815, width: 0.178, height: 0.14, rotate: 0, skewY: 0 },
@@ -161,4 +184,13 @@ export function placeCategories<C extends CategoryLike>(categories: readonly C[]
     }
   }
   return { byRoom, placed };
+}
+
+/** The outline of a portal as SVG `points` in its own box (0..100 on both axes), or null for a plain rectangle. */
+export function portalPoints(portal: Portal): string | null {
+  if (!portal.shape || portal.shape.length < 3) return null;
+  const pct = (value: number): string => (Math.round(value * 100) / 100).toString();
+  return portal.shape
+    .map(([x, y]) => `${pct(((x - portal.left) / portal.width) * 100)},${pct(((y - portal.top) / portal.height) * 100)}`)
+    .join(" ");
 }
