@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { Toaster } from "@/components/Toaster";
@@ -9,7 +9,7 @@ import "@/features/library/library.css";
 
 import { AccountBar } from "../components/AccountBar";
 import { ShelfInspector, type InspectorTarget } from "../components/ShelfInspector";
-import { FIRST_ROOM, HOME_ROOMS, placeCategories, portalPoints, type Hotspot, type RoomId } from "../config";
+import { FIRST_ROOM, HOME_ROOMS, placeCategories, shapePoints, type Hotspot, type RoomId } from "../config";
 import "../home.css";
 
 /** Position and label tilt of a hotspot, as inline style (percentages of the picture). */
@@ -22,6 +22,39 @@ function spotStyle(spot: Hotspot): CSSProperties {
     "--rot": `${spot.rotate}deg`,
     "--skew": `${spot.skewY}deg`,
   } as CSSProperties;
+}
+
+interface SpotButtonProps {
+  spot: Hotspot;
+  className: string;
+  onClick: () => void;
+  /** Accessible name, when the button has no visible text. */
+  ariaLabel?: string;
+  /** Faint breathing contour that hints that the shape is clickable (the staircase). */
+  hint?: boolean;
+  /** Soft breathing glow of a rectangular portal without text (the staircase down). */
+  glow?: boolean;
+  haspopup?: boolean;
+  children?: ReactNode;
+}
+
+/**
+ * A clickable place in the picture. With an outline (`shape`) only that shape is clickable and, on hover,
+ * glows along its own contour; without one it is a plain rectangle.
+ */
+function SpotButton({ spot, className, onClick, ariaLabel, hint, glow, haspopup, children }: SpotButtonProps) {
+  const points = shapePoints(spot);
+  const classes = points ? `${className} hm-shaped${hint ? " hm-shaped--hint" : ""}` : className;
+  return (
+    <button type="button" className={classes} style={spotStyle(spot)} onClick={onClick} aria-label={ariaLabel} data-glow={glow && !points ? "" : undefined} aria-haspopup={haspopup ? "dialog" : undefined}>
+      {points && (
+        <svg className="hm-shaped-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden focusable="false">
+          <polygon className="hm-shaped-poly" points={points} />
+        </svg>
+      )}
+      {children}
+    </button>
+  );
 }
 
 /**
@@ -56,39 +89,30 @@ export function HomePage() {
           `key` restarts the fade-in when the visitor changes room. */}
       <div key={room.id} className="hm-room" style={{ backgroundImage: `url(${room.background})`, "--hm-aspect": room.aspect } as CSSProperties}>
         {placements.map(({ spot, category }) => (
-          <button key={category.id} type="button" className={shelfClass} style={spotStyle(spot)} onClick={() => openCategory(category)} aria-haspopup="dialog">
+          <SpotButton key={category.id} spot={spot} className={shelfClass} onClick={() => openCategory(category)} haspopup>
             <span className={labelClass}>{category.name}</span>
-          </button>
+          </SpotButton>
         ))}
 
         {room.picks && (
-          <button type="button" className={shelfClass} style={spotStyle(room.picks)} onClick={openPicks} aria-haspopup="dialog">
+          <SpotButton spot={room.picks} className={shelfClass} onClick={openPicks} haspopup>
             <span className={labelClass}>Indicação</span>
-          </button>
+          </SpotButton>
         )}
 
-        {room.portals.map((portal) => {
-          const points = portalPoints(portal);
-          return (
-            <button
-              key={portal.id}
-              type="button"
-              className={points ? "hm-shelf hm-portal hm-portal--shaped" : "hm-shelf hm-portal"}
-              data-glow={portal.glow && !points ? "" : undefined}
-              style={spotStyle(portal)}
-              onClick={() => setRoomId(portal.to)}
-              aria-label={portal.label}
-            >
-              {points ? (
-                <svg className="hm-portal-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden focusable="false">
-                  <polygon className="hm-portal-poly" points={points} />
-                </svg>
-              ) : (
-                !portal.glow && <span className="hm-label">{portal.label}</span>
-              )}
-            </button>
-          );
-        })}
+        {room.portals.map((portal) => (
+          <SpotButton
+            key={portal.id}
+            spot={portal}
+            className="hm-shelf hm-portal"
+            onClick={() => setRoomId(portal.to)}
+            ariaLabel={portal.label}
+            hint={portal.glow}
+            glow={portal.glow}
+          >
+            {!portal.glow && <span className="hm-label">{portal.label}</span>}
+          </SpotButton>
+        ))}
 
         {roomId !== FIRST_ROOM && placements.length === 0 && (
           <p className="hm-empty" role="status">

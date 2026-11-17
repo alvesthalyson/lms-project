@@ -26,6 +26,29 @@ export interface Hotspot {
    * without accents). Such a hotspot always opens that category, whatever the order of the API list.
    */
   category?: string;
+  /**
+   * Outline of the clickable area, as [x, y] fractions of the picture, so a plaque, a book or a staircase
+   * is clickable (and glows) along its own borders and not as a rectangle. The hotspot box must be the
+   * bounding box of these points. Without it the hotspot is a plain rectangle.
+   */
+  shape?: ReadonlyArray<readonly [number, number]>;
+}
+
+/** Pixel size of the picture of the signed room, in which the outlines below were traced. */
+const LIBRARY_PX = { w: 1850, h: 850 } as const;
+
+/** Turn an outline traced in picture pixels into a hotspot box plus `shape` (fractions of the picture). */
+function traced(points: ReadonlyArray<readonly [number, number]>): Pick<Hotspot, "left" | "top" | "width" | "height" | "shape"> {
+  const xs = points.map(([x]) => x);
+  const ys = points.map(([, y]) => y);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  return {
+    left: x0 / LIBRARY_PX.w,
+    top: y0 / LIBRARY_PX.h,
+    width: (x1 - x0) / LIBRARY_PX.w,
+    height: (y1 - y0) / LIBRARY_PX.h,
+    shape: points.map(([x, y]) => [x / LIBRARY_PX.w, y / LIBRARY_PX.h] as const),
+  };
 }
 
 export type RoomId = "library" | "upstairs";
@@ -37,11 +60,6 @@ export interface Portal extends Hotspot {
   label: string;
   /** Show only a soft golden glow (no text) instead of a label. */
   glow?: boolean;
-  /**
-   * Outline of the clickable area, as [x, y] fractions of the picture, so a staircase is clickable as a
-   * staircase and not as a rectangle. The hotspot box must be the bounding box of these points.
-   */
-  shape?: ReadonlyArray<readonly [number, number]>;
 }
 
 export interface Room {
@@ -59,46 +77,47 @@ export interface Room {
 }
 
 // The ground floor. The picture has the category names painted on wooden signs, so each hotspot sits on
-// its sign and is tied to its category by name (see `category`). Boxes are fractions of the 1850x850 picture.
+// its sign and is tied to its category by name (see `category`). Outlines are traced on the 1850x850 picture.
 const LIBRARY: Room = {
   id: "library",
   background: "/biblioteca.jpg",
   aspect: 1850 / 850,
   signs: true,
   shelves: [
-    { id: "sign-poesia", category: "poesia", left: 0.078, top: 0.2, width: 0.056, height: 0.13, rotate: 0, skewY: 0 },
-    { id: "sign-arte", category: "arte", left: 0.062, top: 0.378, width: 0.074, height: 0.075, rotate: 0, skewY: 0 },
-    { id: "sign-programacao", category: "programacao", left: 0.893, top: 0.03, width: 0.105, height: 0.13, rotate: 0, skewY: 0 },
-    { id: "sign-ficcao", category: "ficcao", left: 0.872, top: 0.388, width: 0.074, height: 0.085, rotate: 0, skewY: 0 },
-    { id: "sign-ciencia", category: "ciencia", left: 0.724, top: 0.425, width: 0.056, height: 0.05, rotate: 0, skewY: 0 },
-    { id: "sign-historia", category: "historia", left: 0.621, top: 0.475, width: 0.054, height: 0.044, rotate: 0, skewY: 0 },
-    { id: "sign-filosofia", category: "filosofia", left: 0.383, top: 0.49, width: 0.062, height: 0.046, rotate: 0, skewY: 0 },
-    { id: "sign-romance", category: "romance", left: 0.857, top: 0.7, width: 0.07, height: 0.065, rotate: 0, skewY: 0 },
+    { id: "sign-poesia", category: "poesia", rotate: 0, skewY: 0, ...traced([[152, 175], [239, 199], [239, 278], [152, 260]]) },
+    { id: "sign-arte", category: "arte", rotate: 0, skewY: 0, ...traced([[120, 321], [241, 341], [241, 384], [122, 364]]) },
+    { id: "sign-programacao", category: "programacao", rotate: 0, skewY: 0, ...traced([[1661, 90], [1843, 27], [1843, 84], [1663, 143]]) },
+    { id: "sign-ficcao", category: "ficcao", rotate: 0, skewY: 0, ...traced([[1622, 355], [1743, 333], [1743, 386], [1623, 401]]) },
+    { id: "sign-ciencia", category: "ciencia", rotate: 0, skewY: 0, ...traced([[1346, 373], [1436, 364], [1437, 396], [1348, 403]]) },
+    { id: "sign-historia", category: "historia", rotate: 0, skewY: 0, ...traced([[1158, 413], [1238, 411], [1238, 432], [1158, 434]]) },
+    { id: "sign-filosofia", category: "filosofia", rotate: 0, skewY: 0, ...traced([[714, 420], [819, 426], [820, 449], [716, 449]]) },
+    { id: "sign-romance", category: "romance", rotate: 0, skewY: 0, ...traced([[1597, 601], [1707, 608], [1708, 651], [1593, 637]]) },
   ],
   portals: [
-    // the spiral staircase, clickable along its own outline (traced on the 1850x850 picture): no text, just a golden glow
-    {
-      id: "spiral-staircase",
-      to: "upstairs",
-      label: "Subir ao segundo andar",
-      glow: true,
-      left: 0.1481,
-      top: 0.2471,
-      width: 0.2357,
-      height: 0.5482,
-      rotate: 0,
-      skewY: 0,
-      shape: [
-        [0.2962, 0.2471], [0.3459, 0.2494], [0.3741, 0.2824], [0.3838, 0.3412], [0.3805, 0.3941], [0.3632, 0.4353],
-        [0.3405, 0.4647], [0.3216, 0.5], [0.3092, 0.5412], [0.3005, 0.5765], [0.3005, 0.6588], [0.3092, 0.7176],
-        [0.3243, 0.7529], [0.3395, 0.7788], [0.3243, 0.7953], [0.1622, 0.7953], [0.1481, 0.7859], [0.1622, 0.7353],
-        [0.1638, 0.6588], [0.1622, 0.5882], [0.16, 0.5529], [0.1784, 0.5318], [0.2011, 0.5035], [0.2259, 0.4706],
-        [0.2497, 0.4329], [0.267, 0.3882], [0.2746, 0.3412], [0.2784, 0.2941], [0.2865, 0.2612],
-      ],
-    },
+    // the spiral staircase, clickable along its own outline (its right side follows only the handrail): no text, just a golden glow
+    { id: "spiral-staircase", to: "upstairs", label: "Subir ao segundo andar", glow: true, rotate: 0, skewY: 0, ...traced([
+        [560, 210], [600, 226], [640, 243], [666, 257], [689, 276], [700, 294],
+        [702, 308], [690, 321], [675, 329], [655, 343], [639, 356], [620, 364],
+        [603, 372], [585, 380], [570, 388], [554, 399], [543, 414], [540, 424],
+        [546, 450], [552, 485], [557, 520], [557, 545], [557, 584], [567, 598],
+        [594, 614], [627, 637], [621, 656], [599, 668], [571, 677], [520, 681],
+        [420, 682], [330, 682], [283, 678], [298, 655], [304, 610], [304, 560],
+        [304, 500], [305, 476], [309, 440], [312, 415], [322, 401], [343, 402],
+        [344, 448], [352, 452], [374, 436], [405, 419], [436, 403], [467, 391],
+        [499, 377], [524, 364], [546, 349], [556, 338], [558, 300], [558, 270],
+        [559, 240],
+    ]) },
   ],
   // the open book on the foreground desk, with "Indicação" written on its pages. It is not a category.
-  picks: { id: "open-book", left: 0.108, top: 0.815, width: 0.178, height: 0.14, rotate: 0, skewY: 0 },
+  picks: { id: "open-book", rotate: 0, skewY: 0, ...traced([
+        [200, 706], [212, 702], [228, 700], [250, 696], [275, 694], [300, 693],
+        [318, 698], [330, 706], [345, 700], [365, 697], [385, 697], [405, 702],
+        [425, 710], [445, 720], [465, 730], [485, 741], [505, 754], [520, 766],
+        [532, 775], [530, 781], [515, 782], [485, 783], [450, 785], [420, 792],
+        [405, 797], [380, 797], [350, 798], [320, 800], [290, 803], [270, 810],
+        [255, 818], [248, 816], [235, 800], [220, 780], [208, 760], [202, 740],
+        [200, 720],
+  ]) },
 };
 
 // The second floor: the blue, magical library, with the same spiral staircase leading back down.
@@ -186,11 +205,11 @@ export function placeCategories<C extends CategoryLike>(categories: readonly C[]
   return { byRoom, placed };
 }
 
-/** The outline of a portal as SVG `points` in its own box (0..100 on both axes), or null for a plain rectangle. */
-export function portalPoints(portal: Portal): string | null {
-  if (!portal.shape || portal.shape.length < 3) return null;
+/** The outline of a hotspot as SVG `points` in its own box (0..100 on both axes), or null for a plain rectangle. */
+export function shapePoints(spot: Hotspot): string | null {
+  if (!spot.shape || spot.shape.length < 3) return null;
   const pct = (value: number): string => (Math.round(value * 100) / 100).toString();
-  return portal.shape
-    .map(([x, y]) => `${pct(((x - portal.left) / portal.width) * 100)},${pct(((y - portal.top) / portal.height) * 100)}`)
+  return spot.shape
+    .map(([x, y]) => `${pct(((x - spot.left) / spot.width) * 100)},${pct(((y - spot.top) / spot.height) * 100)}`)
     .join(" ");
 }

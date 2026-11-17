@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { categoryKey, HOME_ROOMS, placeCategories, portalPoints, ROOM_ORDER, type Hotspot } from "./config";
+import { categoryKey, HOME_ROOMS, placeCategories, shapePoints, ROOM_ORDER, type Hotspot } from "./config";
 
 function everyHotspot(): Array<[string, Hotspot]> {
   return ROOM_ORDER.flatMap((id) => {
@@ -65,28 +65,39 @@ describe("placeCategories", () => {
   });
 });
 
-describe("portal outline", () => {
+describe("outlines", () => {
+  const shaped = (): Array<[string, Hotspot]> => everyHotspot().filter(([, h]) => h.shape);
   const staircase = HOME_ROOMS.library.portals[0]!;
 
-  it("traces the staircase inside its own box", () => {
-    expect(staircase.shape?.length).toBeGreaterThan(8);
-    for (const [x, y] of staircase.shape!) {
-      expect(x).toBeGreaterThanOrEqual(staircase.left - 1e-3);
-      expect(x).toBeLessThanOrEqual(staircase.left + staircase.width + 1e-3);
-      expect(y).toBeGreaterThanOrEqual(staircase.top - 1e-3);
-      expect(y).toBeLessThanOrEqual(staircase.top + staircase.height + 1e-3);
+  it("gives every plaque, the open book and the staircase of the signed room their own outline", () => {
+    const room = HOME_ROOMS.library;
+    for (const h of [...room.shelves, ...room.portals, room.picks!]) expect(h.shape?.length, h.id).toBeGreaterThanOrEqual(4);
+    expect(staircase.shape!.length).toBeGreaterThan(8);
+    expect(room.picks!.shape!.length).toBeGreaterThan(8);
+  });
+
+  it("keeps each outline inside its own box, which is its bounding box", () => {
+    for (const [, h] of shaped()) {
+      const xs = h.shape!.map(([x]) => x);
+      const ys = h.shape!.map(([, y]) => y);
+      expect(Math.min(...xs)).toBeCloseTo(h.left, 3);
+      expect(Math.max(...xs)).toBeCloseTo(h.left + h.width, 3);
+      expect(Math.min(...ys)).toBeCloseTo(h.top, 3);
+      expect(Math.max(...ys)).toBeCloseTo(h.top + h.height, 3);
     }
   });
 
-  it("turns the outline into 0..100 points of the box, and leaves plain rectangles alone", () => {
-    const points = portalPoints(staircase)!.split(" ").map((p) => p.split(",").map(Number) as [number, number]);
-    expect(points).toHaveLength(staircase.shape!.length);
-    for (const [x, y] of points) {
-      expect(x).toBeGreaterThanOrEqual(-0.5);
-      expect(x).toBeLessThanOrEqual(100.5);
-      expect(y).toBeGreaterThanOrEqual(-0.5);
-      expect(y).toBeLessThanOrEqual(100.5);
+  it("turns an outline into 0..100 points of the box, and leaves plain rectangles alone", () => {
+    for (const [, h] of shaped()) {
+      const points = shapePoints(h)!.split(" ").map((p) => p.split(",").map(Number) as [number, number]);
+      expect(points).toHaveLength(h.shape!.length);
+      for (const [x, y] of points) {
+        expect(x).toBeGreaterThanOrEqual(-0.5);
+        expect(x).toBeLessThanOrEqual(100.5);
+        expect(y).toBeGreaterThanOrEqual(-0.5);
+        expect(y).toBeLessThanOrEqual(100.5);
+      }
     }
-    expect(portalPoints(HOME_ROOMS.upstairs.portals[0]!)).toBeNull();
+    expect(shapePoints(HOME_ROOMS.upstairs.portals[0]!)).toBeNull();
   });
 });
