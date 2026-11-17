@@ -26,6 +26,30 @@
     --radius: 0.5rem;
   }
 
+  /* Dark theme of the counter pages: the same warm, candle-lit palette as the painted library. */
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --background: 28 30% 8%;
+    --foreground: 38 40% 90%;
+    --card: 28 28% 11%;
+    --card-foreground: 38 40% 90%;
+    --primary: 40 70% 60%;
+    --primary-foreground: 28 40% 10%;
+    --secondary: 28 20% 17%;
+    --secondary-foreground: 38 40% 90%;
+    --muted: 28 20% 17%;
+    --muted-foreground: 35 20% 66%;
+    --accent: 28 22% 20%;
+    --accent-foreground: 38 40% 92%;
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 45% 48%;
+    --success-foreground: 28 40% 8%;
+    --border: 28 18% 22%;
+    --input: 28 18% 22%;
+    --ring: 40 60% 55%;
+  }
+
   * {
     @apply border-border;
   }

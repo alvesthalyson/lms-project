@@ -1,4 +1,4 @@
-import { BookOpen, LogOut } from "lucide-react";
+import { BookOpen, LogOut, Moon, Sun } from "lucide-react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 
 import { Toaster } from "@/components/Toaster";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { isStaff } from "@/features/auth/access";
 import { useAuth } from "@/features/auth/hooks";
 import { cn } from "@/lib/cn";
+import { usePrefs } from "@/lib/i18n/store";
+import { useT } from "@/lib/i18n/useT";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -16,6 +18,9 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppLayout() {
   const { status, user, logout } = useAuth();
+  const { t } = useT();
+  const theme = usePrefs((s) => s.theme);
+  const setTheme = usePrefs((s) => s.setTheme);
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,6 +60,10 @@ export function AppLayout() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" aria-label={theme === "dark" ? t("prefs.toLight") : t("prefs.toDark")} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+              {theme === "dark" ? <Sun className="h-4 w-4" aria-hidden /> : <Moon className="h-4 w-4" aria-hidden />}
+              <span className="hidden sm:inline">{theme === "dark" ? t("prefs.toLight") : t("prefs.toDark")}</span>
+            </Button>
             {user ? (
               <>
                 <span className="hidden text-sm sm:inline">{user.first_name || user.email}</span>
