@@ -259,7 +259,7 @@
 }
 
 /* language picker in the account bar */
-.hm-lang { appearance: none; padding-right: 14px; color: inherit; }
+.hm-lang { appearance: none; color: inherit; text-align: center; text-align-last: center; }
 .hm-lang option { color: #1a1008; background: #f4ead2; }
 
 /* ───────── Light theme (<html data-theme="light">); dark is the default look ───────── */
