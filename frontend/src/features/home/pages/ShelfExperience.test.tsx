@@ -180,10 +180,11 @@ describe("language and theme", () => {
 
     await u.selectOptions(await screen.findByRole("combobox", { name: "Idioma" }), "en");
     expect(await screen.findByRole("link", { name: "Sign in" })).toBeInTheDocument();
-    const [shelf] = await screen.findAllByRole("button", { name: "Poesia" });
+    const [shelf] = await screen.findAllByRole("button", { name: "Poetry" }); // the category name follows the language too
     await u.click(shelf!);
     const dialog = await screen.findByRole("dialog");
     expect(await within(dialog).findByRole("button", { name: "Surprise me (R)" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("heading", { name: "Poetry" })).toBeInTheDocument();
 
     await u.selectOptions(screen.getByRole("combobox", { name: "Language" }), "ja");
     expect(await within(dialog).findByRole("button", { name: "おまかせ (R)" })).toBeInTheDocument();
