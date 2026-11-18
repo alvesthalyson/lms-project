@@ -134,14 +134,20 @@ const UPSTAIRS: Room = {
   signs: true,
   // painted category plaques of the second floor (same look as the ground floor): two on the right bookcases, two at the back
   shelves: [
-    { id: "sign-fantasia", category: "fantasia", rotate: 0, skewY: 0, ...traced([[1252, 378], [1322, 361], [1322, 389], [1252, 406]], UPSTAIRS_PX) },
-    { id: "sign-aventura", category: "aventura", rotate: 0, skewY: 0, ...traced([[1546, 338], [1662, 306], [1662, 340], [1546, 372]], UPSTAIRS_PX) },
-    { id: "sign-misterio", category: "misterio", rotate: 0, skewY: 0, ...traced([[452, 452], [530, 452], [530, 477], [452, 477]], UPSTAIRS_PX) },
-    { id: "sign-biografia", category: "biografia", rotate: 0, skewY: 0, ...traced([[896, 447], [956, 447], [956, 469], [896, 469]], UPSTAIRS_PX) },
+    { id: "sign-fantasia", category: "fantasia", rotate: 0, skewY: 0, ...traced([[1084, 434], [1178, 414], [1178, 446], [1084, 466]], UPSTAIRS_PX) },
+    { id: "sign-aventura", category: "aventura", rotate: 0, skewY: 0, ...traced([[1544, 332], [1664, 298], [1664, 342], [1544, 376]], UPSTAIRS_PX) },
+    { id: "sign-misterio", category: "misterio", rotate: 0, skewY: 0, ...traced([[448, 447], [534, 447], [534, 478], [448, 478]], UPSTAIRS_PX) },
+    { id: "sign-biografia", category: "biografia", rotate: 0, skewY: 0, ...traced([[890, 442], [962, 442], [962, 470], [890, 470]], UPSTAIRS_PX) },
   ],
   portals: [
-    // the round stairwell with its balustrade, in the floor: the way back down (clickable along its outline, traced on the 1672x941 picture)
-    { id: "staircase-down", to: "library", label: "Descer ao andar de baixo", glow: true, rotate: 0, skewY: 0, ...traced([[520, 590], [560, 603], [640, 603], [740, 603], [840, 606], [940, 612], [982, 645], [990, 690], [965, 745], [952, 790], [925, 815], [850, 822], [740, 820], [640, 812], [560, 795], [500, 775], [480, 740], [478, 690], [490, 640]], UPSTAIRS_PX) },
+    // the steps that go down through the round stairwell in the floor: the way back down (clickable along the outline drawn by hand on the 1672x941 picture)
+    { id: "staircase-down", to: "library", label: "Descer ao andar de baixo", glow: true, rotate: 0, skewY: 0, ...traced([
+        [543, 676], [542, 738], [544, 759], [548, 762], [551, 771], [551, 789],
+        [549, 791], [562, 793], [567, 797], [601, 803], [608, 807], [625, 807],
+        [647, 813], [664, 813], [692, 820], [831, 825], [816, 812], [797, 805],
+        [790, 806], [783, 801], [783, 783], [768, 770], [736, 750], [687, 727],
+        [679, 726], [658, 716], [614, 702], [593, 692], [576, 688], [547, 674],
+    ], UPSTAIRS_PX) },
   ],
 };
 
