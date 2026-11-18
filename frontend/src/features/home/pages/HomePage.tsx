@@ -72,7 +72,7 @@ export function HomePage() {
   const [roomId, setRoomId] = useState<RoomId>(FIRST_ROOM);
   const [open, setOpen] = useState<InspectorTarget | null>(null);
   const close = useCallback(() => setOpen(null), []);
-  const { t } = useT();
+  const { t, catName } = useT();
   const [globeOpen, setGlobeOpen] = useState(false);
   const closeGlobe = useCallback(() => setGlobeOpen(false), []);
   // A country was chosen on the globe: close it and open the shelf with that country's books.
@@ -86,6 +86,7 @@ export function HomePage() {
 
   const theme = usePrefs((s) => s.theme);
   const room = HOME_ROOMS[roomId];
+  const portalLabel = (to: RoomId): string => t(to === "library" ? "home.down" : "home.up");
   const background = theme === "dark" && room.backgroundDark ? room.backgroundDark : room.background;
   // Which category stands on which bookcase: by painted sign where the picture has one, else in list order.
   const { byRoom, placed } = useMemo(() => placeCategories(categories), [categories]);
@@ -95,9 +96,9 @@ export function HomePage() {
   const labelClass = signs ? "hm-label hm-label--painted" : "hm-label";
 
   const openCategory = (category: Category): void =>
-    setOpen({ title: category.name, kicker: "Catálogo da estante", query: { category: category.id, page_size: 50, ordering: "title" } });
+    setOpen({ title: catName(category), kicker: t("home.shelfKicker"), query: { category: category.id, page_size: 50, ordering: "title" } });
   const openPicks = (): void =>
-    setOpen({ title: "Indicação", kicker: "Indicações da casa", query: { available: true, ordering: "-created_at", page_size: 12 } });
+    setOpen({ title: t("home.picks"), kicker: t("home.picksKicker"), query: { available: true, ordering: "-created_at", page_size: 12 } });
 
   return (
     <main className={signs ? "hm-root hm-root--signs" : "hm-root"}>
@@ -106,13 +107,13 @@ export function HomePage() {
       <div key={room.id} className="hm-room" style={{ backgroundImage: `url(${background})`, "--hm-aspect": room.aspect } as CSSProperties}>
         {placements.map(({ spot, category }) => (
           <SpotButton key={category.id} spot={spot} className={shelfClass} onClick={() => openCategory(category)} haspopup>
-            <span className={labelClass}>{category.name}</span>
+            <span className={labelClass}>{catName(category)}</span>
           </SpotButton>
         ))}
 
         {room.picks && (
           <SpotButton spot={room.picks} className={shelfClass} onClick={openPicks} haspopup>
-            <span className={labelClass}>Indicação</span>
+            <span className={labelClass}>{t("home.picks")}</span>
           </SpotButton>
         )}
 
@@ -126,17 +127,17 @@ export function HomePage() {
             spot={portal}
             className="hm-shelf hm-portal"
             onClick={() => setRoomId(portal.to)}
-            ariaLabel={portal.label}
+            ariaLabel={portalLabel(portal.to)}
             hint={portal.glow}
             glow={portal.glow}
           >
-            {!portal.glow && <span className="hm-label">{portal.label}</span>}
+            {!portal.glow && <span className="hm-label">{portalLabel(portal.to)}</span>}
           </SpotButton>
         ))}
 
         {roomId !== FIRST_ROOM && placements.length === 0 && (
           <p className="hm-empty" role="status">
-            Ainda não há estantes nesta sala.
+            {t("home.emptyRoom")}
           </p>
         )}
       </div>
@@ -146,15 +147,15 @@ export function HomePage() {
       <FilmGrain />
 
       {/* Categories that did not fit a bookcase (all of them on narrow screens, where the picture is cropped), plus the portals. */}
-      <nav className="hm-dock" aria-label="Todas as estantes">
+      <nav className="hm-dock" aria-label={t("home.allShelves")}>
         {categories.map((category) => (
           <button key={category.id} type="button" className="hm-pill" data-overflow={placed.has(category.id) ? undefined : ""} onClick={() => openCategory(category)}>
-            {category.name}
+            {catName(category)}
           </button>
         ))}
         {room.picks && (
           <button type="button" className="hm-pill" onClick={openPicks}>
-            Indicação
+            {t("home.picks")}
           </button>
         )}
         {room.globe && (
@@ -164,11 +165,11 @@ export function HomePage() {
         )}
         {room.portals.map((portal) => (
           <button key={portal.id} type="button" className="hm-pill hm-pill--portal" onClick={() => setRoomId(portal.to)}>
-            {portal.label}
+            {portalLabel(portal.to)}
           </button>
         ))}
         <Link to="/books" className="hm-pill hm-pill--ghost">
-          Modo balcão
+          {t("home.counter")}
         </Link>
       </nav>
 

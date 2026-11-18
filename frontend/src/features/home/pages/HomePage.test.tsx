@@ -10,6 +10,7 @@ import type { Role, User } from "@/features/auth/types";
 import { listBooks, listCategories, listCountries } from "@/features/books/api";
 import type { Book, Category } from "@/features/books/types";
 import { createReservation } from "@/features/reservations/api";
+import { usePrefs } from "@/lib/i18n/store";
 
 import { HomePage } from "./HomePage";
 
@@ -194,11 +195,26 @@ describe("HomePage: the globe", () => {
     await user.click((await screen.findAllByRole("button", { name: "Subir ao segundo andar" }))[0]!);
     await user.click((await screen.findAllByRole("button", { name: /Abrir o globo/ }))[0]!);
 
-    const chip = await screen.findByRole("button", { name: /Japão: 2 livros/ });
-    await user.click(chip);
+    await user.click(await screen.findByRole("button", { name: /Lista de países/ }));
+    await user.click(await screen.findByRole("button", { name: /Japão: 2 livros/ }));
 
     expect(await screen.findByRole("heading", { name: "Japão" })).toBeInTheDocument();
     await waitFor(() => expect(listBooks).toHaveBeenCalledWith(expect.objectContaining({ author_country: "JP" }), expect.anything()));
     vi.unstubAllGlobals();
+  });
+});
+
+describe("HomePage: language", () => {
+  it("shows the category names and the Indicação label in the chosen language", async () => {
+    usePrefs.setState({ lang: "en" });
+    try {
+      renderHome();
+      expect((await screen.findAllByRole("button", { name: "Poetry" })).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("button", { name: "Picks" }).length).toBeGreaterThan(0);
+      expect(screen.getByRole("link", { name: "Counter mode" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Poesia" })).not.toBeInTheDocument();
+    } finally {
+      usePrefs.setState({ lang: "pt" });
+    }
   });
 });

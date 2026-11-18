@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useCountries } from "@/features/books/hooks";
 import { useT } from "@/lib/i18n/useT";
@@ -16,8 +16,8 @@ interface GlobeDialogProps {
 
 /**
  * "Literary journey": a globe you spin, with the countries that have books glowing gold. Choosing one
- * opens the shelf with the books by authors of that country. Below the globe the same countries are listed
- * as buttons, which also covers keyboards, small countries and the ones the map does not draw.
+ * opens the shelf with the books by authors of that country. A "Country list" button under the globe
+ * opens the same countries as a list, which also covers keyboards, small countries and the ones the map does not draw.
  * Modal dialog: Esc, the X button and a click outside close it.
  */
 export function GlobeDialog({ onClose, onPick, autoRotate = true }: GlobeDialogProps) {
@@ -25,6 +25,7 @@ export function GlobeDialog({ onClose, onPick, autoRotate = true }: GlobeDialogP
   const world = useWorld();
   const countries = useCountries();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [listOpen, setListOpen] = useState(false);
 
   useEffect(() => {
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -82,15 +83,22 @@ export function GlobeDialog({ onClose, onPick, autoRotate = true }: GlobeDialogP
           {world.data && !failed && rows.length > 0 && <Globe world={world.data} counts={counts} describe={describe} onPick={pick} autoRotate={autoRotate} />}
 
           {rows.length > 0 && (
-            <ul className="gl-chips" aria-label={t("globe.list")}>
-              {rows.map((r) => (
-                <li key={r.country}>
-                  <button type="button" className="hm-pill gl-chip" onClick={() => pick(r.country)}>
-                    <span aria-hidden>{flagOf(r.country)}</span> {describe(r.country, r.books)}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <>
+              <button type="button" className="hm-pill gl-list-toggle" aria-expanded={listOpen} aria-controls="gl-list" onClick={() => setListOpen((v) => !v)}>
+                {t("globe.listButton")} {listOpen ? "▴" : "▾"}
+              </button>
+              {listOpen && (
+                <ul id="gl-list" className="gl-chips" aria-label={t("globe.list")}>
+                  {rows.map((r) => (
+                    <li key={r.country}>
+                      <button type="button" className="hm-pill gl-chip" onClick={() => pick(r.country)}>
+                        <span aria-hidden>{flagOf(r.country)}</span> {describe(r.country, r.books)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
           )}
         </div>
       </section>

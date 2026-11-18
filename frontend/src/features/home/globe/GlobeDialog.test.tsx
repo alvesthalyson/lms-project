@@ -43,9 +43,9 @@ describe("GlobeDialog", () => {
   it("lights up only the countries that have books, as buttons that say how many", async () => {
     renderDialog();
 
-    // the gold shape on the globe and its twin in the list below
-    expect(await screen.findAllByRole("button", { name: "Brasil: 3 livros" })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "Portugal: 1 livro" })).toHaveLength(2);
+    expect(await screen.findAllByRole("button", { name: "Brasil: 3 livros" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Portugal: 1 livro" })).toHaveLength(1);
+    expect(screen.queryByRole("list")).not.toBeInTheDocument(); // the list stays shut until asked for
     expect(screen.queryByRole("button", { name: /França/ })).not.toBeInTheDocument(); // FR is drawn, but dim
   });
 
@@ -59,11 +59,15 @@ describe("GlobeDialog", () => {
     await waitFor(() => expect(onPick).toHaveBeenCalledWith("BR", "Brasil"));
   });
 
-  it("also lists the countries as buttons, for keyboards and the ones the map does not draw", async () => {
+  it("has one button that opens the list of countries, for keyboards and the ones the map does not draw", async () => {
     const user = userEvent.setup();
     const { onPick } = renderDialog();
 
-    const list = await screen.findByRole("list", { name: "Países com livros" });
+    const toggle = await screen.findByRole("button", { name: /Lista de países/ });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    const list = screen.getByRole("list", { name: "Países com livros" });
     expect(list.querySelectorAll("li")).toHaveLength(2);
     await user.click(within(list).getByRole("button", { name: /Portugal: 1 livro/ }));
     expect(onPick).toHaveBeenCalledWith("PT", "Portugal");
@@ -83,7 +87,7 @@ describe("GlobeDialog", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível abrir o globo.");
     await user.click(screen.getByRole("button", { name: "Tentar de novo" }));
-    expect(await screen.findByRole("list", { name: "Países com livros" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Lista de países/ })).toBeInTheDocument();
   });
 
   it("closes with Esc, with the X button and with a click outside", async () => {
