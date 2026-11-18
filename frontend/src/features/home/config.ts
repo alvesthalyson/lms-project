@@ -101,16 +101,17 @@ const LIBRARY: Room = {
     { id: "sign-romance", category: "romance", rotate: 0, skewY: 0, ...traced([[1597, 601], [1707, 608], [1708, 651], [1593, 637]]) },
   ],
   portals: [
-    // the spiral staircase, clickable along its own outline (it follows the two handrails that go down and the steps): no text, just a golden glow
+    // the spiral staircase, clickable along its own outline (it follows the two handrails that go down and the steps, ignoring the lamp posts): no text, just a golden glow
     { id: "spiral-staircase", to: "upstairs", label: "Subir ao segundo andar", glow: true, rotate: 0, skewY: 0, ...traced([
         [560, 210], [600, 226], [640, 243], [666, 257], [689, 276], [700, 294],
         [702, 308], [690, 321], [675, 329], [655, 343], [639, 356], [620, 364],
-        [603, 372], [585, 380], [570, 388], [554, 399], [543, 414], [540, 424],
-        [546, 450], [552, 485], [557, 520], [557, 545], [557, 584], [567, 598],
-        [594, 614], [627, 637], [621, 656], [599, 668], [571, 677], [520, 681],
-        [420, 682], [330, 682], [294, 675], [306, 586], [306, 491], [322, 480],
-        [342, 469], [361, 452], [389, 433], [428, 413], [461, 399], [494, 387],
-        [539, 359], [557, 338], [559, 291], [560, 250],
+        [603, 372], [585, 380], [570, 388], [556, 398], [556, 450], [557, 520],
+        [557, 545], [557, 584], [567, 598], [594, 614], [627, 637], [621, 656],
+        [599, 668], [571, 677], [520, 681], [420, 682], [330, 682], [294, 675],
+        [306, 586], [306, 490], [318, 480], [337, 474], [346, 459], [361, 446],
+        [378, 434], [396, 426], [414, 417], [431, 409], [449, 403], [466, 396],
+        [484, 389], [502, 381], [519, 373], [534, 362], [546, 351], [555, 339],
+        [559, 291], [560, 250],
     ]) },
   ],
   // the open book on the foreground desk, with "Indicação" written on its pages. It is not a category.
@@ -130,12 +131,13 @@ const UPSTAIRS: Room = {
   id: "upstairs",
   background: "/sala-2.jpg",
   aspect: 1672 / 941,
-  // four bookcases take the four extra categories, in this order: two on the right, two at the back of the room
+  signs: true,
+  // painted category plaques of the second floor (same look as the ground floor): two on the right bookcases, two at the back
   shelves: [
-    { id: "ladder-bookcase", left: 0.71, top: 0.3, width: 0.12, height: 0.34, rotate: -3, skewY: -2 },
-    { id: "far-right-bookcase", left: 0.9, top: 0.1, width: 0.1, height: 0.5, rotate: -4, skewY: -3 },
-    { id: "back-left-alcove", left: 0.26, top: 0.45, width: 0.08, height: 0.15, rotate: 2, skewY: 1 },
-    { id: "back-arch-bookcase", left: 0.53, top: 0.44, width: 0.045, height: 0.16, rotate: 0, skewY: 0 },
+    { id: "sign-fantasia", category: "fantasia", rotate: 0, skewY: 0, ...traced([[1252, 378], [1322, 361], [1322, 389], [1252, 406]], UPSTAIRS_PX) },
+    { id: "sign-aventura", category: "aventura", rotate: 0, skewY: 0, ...traced([[1546, 338], [1662, 306], [1662, 340], [1546, 372]], UPSTAIRS_PX) },
+    { id: "sign-misterio", category: "misterio", rotate: 0, skewY: 0, ...traced([[452, 452], [530, 452], [530, 477], [452, 477]], UPSTAIRS_PX) },
+    { id: "sign-biografia", category: "biografia", rotate: 0, skewY: 0, ...traced([[896, 447], [956, 447], [956, 469], [896, 469]], UPSTAIRS_PX) },
   ],
   portals: [
     // the round stairwell with its balustrade, in the floor: the way back down (clickable along its outline, traced on the 1672x941 picture)
