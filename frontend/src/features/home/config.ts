@@ -71,6 +71,8 @@ export interface Room {
   background: string;
   /** Picture for the dark theme (a night version of the same scene, so every hotspot stays in place). Defaults to `background`. */
   backgroundDark?: string;
+  /** Pictures for other languages (key: language code), for rooms whose painted plaques carry text. Falls back to `background`. */
+  backgroundByLang?: Readonly<Record<string, string>>;
   /** Width / height of the picture. */
   aspect: number;
   /** Bookcases. Categories from the API are assigned to them in order, across rooms. */
@@ -131,7 +133,8 @@ const LIBRARY: Room = {
 // The second floor: the blue, magical library, with a round stairwell in the floor leading back down.
 const UPSTAIRS: Room = {
   id: "upstairs",
-  background: "/sala-2.jpg",
+  background: "/sala-2.jpg", // Portuguese plaques
+  backgroundByLang: { en: "/sala-2-en.jpg", ja: "/sala-2-ja.jpg" }, // the same room with the plaques in English and Japanese
   aspect: 1672 / 941,
   signs: true,
   // painted category plaques of the second floor (same look as the ground floor): two on the right bookcases, two at the back

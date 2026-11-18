@@ -72,7 +72,7 @@ export function HomePage() {
   const [roomId, setRoomId] = useState<RoomId>(FIRST_ROOM);
   const [open, setOpen] = useState<InspectorTarget | null>(null);
   const close = useCallback(() => setOpen(null), []);
-  const { t, catName } = useT();
+  const { t, catName, lang } = useT();
   const [globeOpen, setGlobeOpen] = useState(false);
   const closeGlobe = useCallback(() => setGlobeOpen(false), []);
   // A country was chosen on the globe: close it and open the shelf with that country's books.
@@ -87,7 +87,8 @@ export function HomePage() {
   const theme = usePrefs((s) => s.theme);
   const room = HOME_ROOMS[roomId];
   const portalLabel = (to: RoomId): string => t(to === "library" ? "home.down" : "home.up");
-  const background = theme === "dark" && room.backgroundDark ? room.backgroundDark : room.background;
+  const base = theme === "dark" && room.backgroundDark ? room.backgroundDark : room.background;
+  const background = room.backgroundByLang?.[lang] ?? base; // painted plaques in the reader's language
   // Which category stands on which bookcase: by painted sign where the picture has one, else in list order.
   const { byRoom, placed } = useMemo(() => placeCategories(categories), [categories]);
   const placements = byRoom[roomId];

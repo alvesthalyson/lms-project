@@ -66,6 +66,10 @@ describe("placeCategories", () => {
 });
 
 describe("the second floor", () => {
+  it("has the plaques painted in English and Japanese too", () => {
+    expect(HOME_ROOMS.upstairs.backgroundByLang).toEqual({ en: "/sala-2-en.jpg", ja: "/sala-2-ja.jpg" });
+  });
+
   it("has the armillary sphere as the globe, outlined along its own shape", () => {
     const globe = HOME_ROOMS.upstairs.globe!;
     expect(globe.shape!.length).toBeGreaterThan(8);

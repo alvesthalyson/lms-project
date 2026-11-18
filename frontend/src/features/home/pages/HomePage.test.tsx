@@ -213,6 +213,11 @@ describe("HomePage: language", () => {
       expect(screen.getAllByRole("button", { name: "Picks" }).length).toBeGreaterThan(0);
       expect(screen.getByRole("link", { name: "Counter mode" })).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Poesia" })).not.toBeInTheDocument();
+
+      // upstairs the painted plaques come in the same language
+      const user = userEvent.setup();
+      await user.click((await screen.findAllByRole("button", { name: "Go up to the second floor" }))[0]!);
+      expect(document.querySelector(".hm-room")).toHaveStyle({ backgroundImage: 'url("/sala-2-en.jpg")' });
     } finally {
       usePrefs.setState({ lang: "pt" });
     }
