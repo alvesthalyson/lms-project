@@ -35,7 +35,7 @@ Requirements: Docker with the Compose plugin. The first run creates `.env` and a
 | 4 | `makemigrations core users books loans reservations` | the models are consistent. Generates `0002_initial` for `books` (on top of the hand-written `0001_enable_trigram`) and `0001_initial` for the other apps. The apps are named because makemigrations skips apps without a `migrations` folder |
 | 5 | `migrate` | the schema, including the GIN trigram indexes, is created |
 | 6 | `manage.py check` | settings and URLs are sound |
-| 7 | `seed_categories` | the 8 default shelves exist (safe to repeat) |
+| 7 | `seed_categories` | the 12 default shelves exist (8 on the ground floor, 4 upstairs) (safe to repeat) |
 | 7b | `seed_demo` | 16 demo books with copies, so the shelves show something |
 | 8 | `pytest` | the backend test-suite |
 | 9 | build frontend | `npm ci`/`npm install` works |

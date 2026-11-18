@@ -57,11 +57,17 @@ describe("placeCategories", () => {
   });
 
   it("leaves unknown categories for the unsigned room, then the dock", () => {
-    const all = [cat(1, "Poesia"), cat(2, "Culinária"), cat(3, "Viagens"), cat(4, "Jogos"), cat(5, "Humor"), cat(6, "Música"), cat(7, "Esportes")];
+    const all = [cat(1, "Poesia"), cat(2, "Culinária"), cat(3, "Viagens"), cat(4, "Jogos"), cat(5, "Humor"), cat(6, "Música")];
     const { byRoom, placed } = placeCategories(all);
     expect(byRoom.library.map((p) => p.category.id)).toEqual([1]);
-    expect(byRoom.upstairs.map((p) => p.category.id)).toEqual([2, 3, 4, 5, 6]); // five bookcases upstairs
-    expect(placed.has(7)).toBe(false); // only in the dock
+    expect(byRoom.upstairs.map((p) => p.category.id)).toEqual([2, 3, 4, 5]); // four bookcases upstairs
+    expect(placed.has(6)).toBe(false); // only in the dock
+  });
+});
+
+describe("the second floor", () => {
+  it("has two bookcases on the right and two at the back for the four extra categories", () => {
+    expect(HOME_ROOMS.upstairs.shelves.map((s) => s.id)).toEqual(["ladder-bookcase", "far-right-bookcase", "back-left-alcove", "back-arch-bookcase"]);
   });
 });
 

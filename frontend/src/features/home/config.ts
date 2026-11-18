@@ -101,18 +101,16 @@ const LIBRARY: Room = {
     { id: "sign-romance", category: "romance", rotate: 0, skewY: 0, ...traced([[1597, 601], [1707, 608], [1708, 651], [1593, 637]]) },
   ],
   portals: [
-    // the spiral staircase, clickable along its own outline (its right side follows only the handrail): no text, just a golden glow
+    // the spiral staircase, clickable along its own outline (it follows the two handrails that go down and the steps): no text, just a golden glow
     { id: "spiral-staircase", to: "upstairs", label: "Subir ao segundo andar", glow: true, rotate: 0, skewY: 0, ...traced([
         [560, 210], [600, 226], [640, 243], [666, 257], [689, 276], [700, 294],
         [702, 308], [690, 321], [675, 329], [655, 343], [639, 356], [620, 364],
         [603, 372], [585, 380], [570, 388], [554, 399], [543, 414], [540, 424],
         [546, 450], [552, 485], [557, 520], [557, 545], [557, 584], [567, 598],
         [594, 614], [627, 637], [621, 656], [599, 668], [571, 677], [520, 681],
-        [420, 682], [330, 682], [283, 678], [298, 655], [304, 610], [304, 560],
-        [304, 500], [305, 476], [309, 440], [312, 415], [322, 401], [343, 402],
-        [344, 448], [352, 452], [374, 436], [405, 419], [436, 403], [467, 391],
-        [499, 377], [524, 364], [546, 349], [556, 338], [558, 300], [558, 270],
-        [559, 240],
+        [420, 682], [330, 682], [294, 675], [306, 586], [306, 491], [322, 480],
+        [342, 469], [361, 452], [389, 433], [428, 413], [461, 399], [494, 387],
+        [539, 359], [557, 338], [559, 291], [560, 250],
     ]) },
   ],
   // the open book on the foreground desk, with "Indicação" written on its pages. It is not a category.
@@ -132,12 +130,12 @@ const UPSTAIRS: Room = {
   id: "upstairs",
   background: "/sala-2.jpg",
   aspect: 1672 / 941,
+  // four bookcases take the four extra categories, in this order: two on the right, two at the back of the room
   shelves: [
     { id: "ladder-bookcase", left: 0.71, top: 0.3, width: 0.12, height: 0.34, rotate: -3, skewY: -2 },
-    { id: "far-right-bookcase", left: 0.86, top: 0.12, width: 0.07, height: 0.45, rotate: -4, skewY: -3 },
-    { id: "gallery-bookcases", left: 0.73, top: 0.08, width: 0.1, height: 0.18, rotate: -4, skewY: -3 },
+    { id: "far-right-bookcase", left: 0.9, top: 0.1, width: 0.1, height: 0.5, rotate: -4, skewY: -3 },
     { id: "back-left-alcove", left: 0.26, top: 0.45, width: 0.08, height: 0.15, rotate: 2, skewY: 1 },
-    { id: "desk-with-scrolls", left: 0.6, top: 0.7, width: 0.23, height: 0.13, rotate: 5, skewY: 3 },
+    { id: "back-arch-bookcase", left: 0.53, top: 0.44, width: 0.045, height: 0.16, rotate: 0, skewY: 0 },
   ],
   portals: [
     // the round stairwell with its balustrade, in the floor: the way back down (clickable along its outline, traced on the 1672x941 picture)

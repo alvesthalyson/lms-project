@@ -6,7 +6,8 @@ from django.utils.text import slugify
 from apps.books.models import Category
 
 #: The shelves of the main reading room, in the order they appear on the Home map.
-#: The first four were already in use; the last four are the new ones.
+#: The first eight sit on the painted signs of the ground floor; the last four (Fantasia, Aventura, Mistério,
+#: Biografia) are the bookcases of the second floor: two on the right and two at the back of the room.
 DEFAULT_CATEGORIES: tuple[str, ...] = (
     "Programação",
     "Ficção",
@@ -16,6 +17,10 @@ DEFAULT_CATEGORIES: tuple[str, ...] = (
     "Filosofia",
     "Arte",
     "Romance",
+    "Fantasia",
+    "Aventura",
+    "Mistério",
+    "Biografia",
 )
 
 
