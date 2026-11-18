@@ -64,9 +64,10 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
       busy.current = true;
       const from = rotRef.current;
       const to = { lon: country.c[0], lat: country.c[1] };
-      const started = performance.now();
       const DURATION = 650;
+      let started: number | null = null; // taken from the first frame, so it works with any clock
       const step = (now: number): void => {
+        started ??= now;
         const t = Math.min(1, (now - started) / DURATION);
         setRot(between(from, to, easeInOut(t)));
         if (t < 1) requestAnimationFrame(step);
@@ -92,7 +93,7 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
   const onPointerMove = (e: PointerEvent<SVGSVGElement>): void => {
     const d = drag.current;
     if (!d || busy.current) return;
-    const scale = SIZE / e.currentTarget.getBoundingClientRect().width || 1;
+    const scale = SIZE / (e.currentTarget.getBoundingClientRect().width || SIZE);
     const dx = (e.clientX - d.x) * scale;
     const dy = (e.clientY - d.y) * scale;
     d.moved += Math.abs(dx) + Math.abs(dy);
