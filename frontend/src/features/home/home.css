@@ -347,3 +347,26 @@
 .b3d:hover .b3d-front, .b3d:focus-visible .b3d-front {
   box-shadow: 0 0 0 1px rgba(255, 226, 150, 0.95), 0 0 14px rgba(255, 196, 96, 0.85), 0 0 34px rgba(255, 176, 70, 0.5);
 }
+
+/* ───────── The globe ("Literary journey") ───────── */
+.gl-panel { width: min(640px, 100%); }
+.gl-body { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 22px 20px 18px; overflow-y: auto; color: #f3e3c3; text-align: center; }
+.gl-body h2 { margin: 2px 0 4px; font: 600 clamp(1.4rem, 3.4vw, 1.9rem) / 1.1 Georgia, serif; color: #ffe8b0; }
+.gl-hint { margin: 0; max-width: 46ch; font-size: 0.88rem; opacity: 0.85; }
+.gl-status { margin: 24px 0; font-style: italic; }
+.gl-globe { width: min(78vw, 420px); }
+.gl-svg { display: block; width: 100%; height: auto; touch-action: none; cursor: grab; user-select: none; filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.6)); }
+.gl-svg:active { cursor: grabbing; }
+.gl-grid { fill: none; stroke: rgba(233, 192, 106, 0.18); stroke-width: 0.6; pointer-events: none; }
+.gl-country { fill: #3b3a36; stroke: rgba(10, 8, 6, 0.55); stroke-width: 0.5; stroke-linejoin: round; pointer-events: none; }
+.gl-country--books { fill: #d9a93f; stroke: #fff0c0; stroke-width: 0.9; pointer-events: all; cursor: pointer; transition: fill 0.2s ease, filter 0.2s ease; }
+.gl-country--books:hover, .gl-country--books.is-hover, .gl-country--books:focus-visible { fill: #ffd56b; outline: none; filter: drop-shadow(0 0 5px rgba(255, 214, 120, 0.95)) drop-shadow(0 0 12px rgba(255, 180, 70, 0.8)); }
+.gl-rim { stroke: rgba(233, 192, 106, 0.75); stroke-width: 2; }
+.gl-tip { min-height: 1.4em; margin: 0; font: 600 0.95rem Georgia, serif; color: #ffe2a0; }
+.gl-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
+.gl-chip { font-size: 0.82rem; }
+:root[data-theme="light"] .gl-body { color: #3b2410; }
+:root[data-theme="light"] .gl-body h2 { color: #5a2d0e; }
+:root[data-theme="light"] .gl-tip { color: #7a4a14; }
+:root[data-theme="light"] .gl-country { fill: #8d8a80; }
+:root[data-theme="light"] .gl-country--books { fill: #c4912a; stroke: #fff6d8; }

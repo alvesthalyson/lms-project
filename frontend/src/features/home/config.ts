@@ -78,6 +78,8 @@ export interface Room {
   portals: readonly Portal[];
   /** The "Indicação" book, if this room has one. */
   picks?: Hotspot;
+  /** The armillary sphere: opens the globe ("Literary journey"). */
+  globe?: Hotspot;
   /** The names are painted in the picture (signs, the open book): the text labels stay invisible (screen readers only). */
   signs?: boolean;
 }
@@ -139,6 +141,8 @@ const UPSTAIRS: Room = {
     { id: "sign-misterio", category: "misterio", rotate: 0, skewY: 0, ...traced([[448, 447], [534, 447], [534, 478], [448, 478]], UPSTAIRS_PX) },
     { id: "sign-biografia", category: "biografia", rotate: 0, skewY: 0, ...traced([[890, 442], [962, 442], [962, 470], [890, 470]], UPSTAIRS_PX) },
   ],
+  // the armillary sphere at the back of the room: the globe of the literary journey
+  globe: { id: "armillary-globe", rotate: 0, skewY: 0, ...traced([[715, 490], [719, 495], [719, 500], [727, 502], [736, 507], [744, 507], [744, 511], [738, 516], [737, 524], [738, 531], [733, 536], [726, 541], [721, 546], [729, 556], [727, 560], [707, 560], [703, 556], [710, 547], [706, 543], [700, 538], [695, 532], [689, 531], [688, 527], [696, 520], [699, 510], [705, 504], [712, 500], [712, 495]], UPSTAIRS_PX) },
   portals: [
     // the steps that go down through the round stairwell in the floor: the way back down (clickable along the outline drawn by hand on the 1672x941 picture)
     { id: "staircase-down", to: "library", label: "Descer ao andar de baixo", glow: true, rotate: 0, skewY: 0, ...traced([

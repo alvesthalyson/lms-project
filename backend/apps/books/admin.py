@@ -25,8 +25,9 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
+    list_display = ("name", "country")
+    list_filter = ("country",)
+    search_fields = ("name", "country")
 
 
 class BookCopyForm(forms.ModelForm):

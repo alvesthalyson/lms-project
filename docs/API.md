@@ -412,6 +412,10 @@ List extras: `?favorite=true` (the caller's wish list), `?min_rating=4`, `?order
 | DELETE | `/reviews/{id}/` | author or staff | 204 (404 for other members' reviews) |
 | PUT / DELETE | `/books/{id}/favorite/` | signed in | `{is_favorite}`; both idempotent |
 | GET | `/books/{id}/related/` | public | up to 6 `{reason: readers\|author\|category, book}` |
+| GET | `/books/countries/` | public | `[{country: "BR", books: 4}, ...]`, most books first: active titles per author nationality (feeds the Home globe) |
+
+`Author` has an optional `country` (ISO 3166-1 alpha-2, stored in capitals; `br` is accepted and saved as `BR`). Books can be listed
+by it with `?author_country=BR`. A book with authors of two countries counts once for each.
 
 Management commands: `seed_bookshelf` (five demo novels, idempotent) and `fetch_covers [--dry-run] [--force] [--limit N]`
 (Open Library; stores only the cover URL).

@@ -5,7 +5,7 @@ import { categoryKey, HOME_ROOMS, placeCategories, shapePoints, ROOM_ORDER, type
 function everyHotspot(): Array<[string, Hotspot]> {
   return ROOM_ORDER.flatMap((id) => {
     const room = HOME_ROOMS[id];
-    return [...room.shelves, ...room.portals, ...(room.picks ? [room.picks] : [])].map((h): [string, Hotspot] => [id, h]);
+    return [...room.shelves, ...room.portals, ...(room.picks ? [room.picks] : []), ...(room.globe ? [room.globe] : [])].map((h): [string, Hotspot] => [id, h]);
   });
 }
 
@@ -66,6 +66,12 @@ describe("placeCategories", () => {
 });
 
 describe("the second floor", () => {
+  it("has the armillary sphere as the globe, outlined along its own shape", () => {
+    const globe = HOME_ROOMS.upstairs.globe!;
+    expect(globe.shape!.length).toBeGreaterThan(8);
+    expect(HOME_ROOMS.library.globe).toBeUndefined();
+  });
+
   it("has two bookcases on the right and two at the back for the four extra categories", () => {
     expect(HOME_ROOMS.upstairs.shelves.map((s) => s.category)).toEqual(["fantasia", "aventura", "misterio", "biografia"]);
     expect(HOME_ROOMS.upstairs.signs).toBe(true);

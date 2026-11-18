@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from django.db import transaction
-from django.db.models import Avg, Count, F
+from django.db.models import Avg, Count, F, Q
 
-from apps.books.models import Book, Favorite, Review
+from apps.books.models import Author, Book, Favorite, Review
 from apps.users.models import User
 
 Reason = str  # "readers" | "author" | "category"
@@ -27,6 +27,22 @@ def set_favorite(*, user: User, book: Book, wanted: bool) -> bool:
     else:
         Favorite.objects.filter(user=user, book=book).delete()
     return wanted
+
+
+def country_counts() -> list[dict[str, int | str]]:
+    """Books per author nationality, for the globe: [{"country": "BR", "books": 4}, ...], most books first.
+
+    Only active titles count, and authors without a country are left out. A book with authors from two
+    countries counts once for each of them.
+    """
+    rows = (
+        Author.objects.exclude(country="")
+        .values("country")
+        .annotate(books=Count("books", filter=Q(books__is_active=True), distinct=True))
+        .filter(books__gt=0)
+        .order_by("-books", "country")
+    )
+    return [{"country": r["country"], "books": r["books"]} for r in rows]
 
 
 def recommendations(book: Book, limit: int = 6) -> list[tuple[Book, Reason]]:

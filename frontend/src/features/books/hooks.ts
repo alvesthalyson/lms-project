@@ -7,6 +7,7 @@ import {
   listAuthors,
   listBooks,
   listCategories,
+  listCountries,
   listRelated,
   listReviews,
   saveReview,
@@ -25,6 +26,7 @@ export const bookKeys = {
   reviews: (id: number) => [...bookKeys.all, "reviews", id] as const,
   related: (id: number) => [...bookKeys.all, "related", id] as const,
   categories: () => ["categories"] as const,
+  countries: () => [...bookKeys.all, "countries"] as const,
   authors: (search: string) => ["authors", search] as const,
 };
 
@@ -51,6 +53,16 @@ export function useCategories() {
     queryKey: bookKeys.categories(),
     queryFn: ({ signal }) => listCategories(signal),
     staleTime: 5 * 60_000, // categories rarely change
+  });
+}
+
+/** Books per author nationality, for the globe. */
+export function useCountries(options: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: bookKeys.countries(),
+    queryFn: ({ signal }) => listCountries(signal),
+    staleTime: 60_000,
+    enabled: options.enabled ?? true,
   });
 }
 

@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Paginated } from "@/api/types";
 import { AuthContext, type AuthContextValue } from "@/features/auth/AuthContext";
 import type { Role, User } from "@/features/auth/types";
-import { listBooks, listCategories } from "@/features/books/api";
+import { listBooks, listCategories, listCountries } from "@/features/books/api";
 import type { Book, Category } from "@/features/books/types";
 import { createReservation } from "@/features/reservations/api";
 
@@ -180,5 +180,25 @@ describe("HomePage: reserving from a shelf", () => {
     await within(dialog).findByText("Poesias Completas");
     expect(within(dialog).queryByRole("button", { name: /^Reservar/ })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("link", { name: /Entrar para reservar/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("HomePage: the globe", () => {
+  it("opens from the armillary sphere upstairs and shows the shelf of the chosen country", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ JP: { c: [138, 36], r: [[130, 31, 142, 31, 142, 41, 130, 41]] } }) }));
+    vi.mocked(listCountries).mockResolvedValue([{ country: "JP", books: 2 }]);
+    const user = userEvent.setup();
+    renderHome();
+
+    expect(screen.queryByRole("button", { name: "Abrir o globo" })).not.toBeInTheDocument(); // not on the ground floor
+    await user.click((await screen.findAllByRole("button", { name: "Subir ao segundo andar" }))[0]!);
+    await user.click((await screen.findAllByRole("button", { name: /Abrir o globo/ }))[0]!);
+
+    const chip = await screen.findByRole("button", { name: /Japão: 2 livros/ });
+    await user.click(chip);
+
+    expect(await screen.findByRole("heading", { name: "Japão" })).toBeInTheDocument();
+    await waitFor(() => expect(listBooks).toHaveBeenCalledWith(expect.objectContaining({ author_country: "JP" }), expect.anything()));
+    vi.unstubAllGlobals();
   });
 });

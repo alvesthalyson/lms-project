@@ -41,6 +41,13 @@ class Category(TimeStampedModel):
 
 class Author(TimeStampedModel):
     name = models.CharField(max_length=255)
+    country = models.CharField(
+        max_length=2,
+        blank=True,
+        db_index=True,
+        validators=[RegexValidator(regex=r"^[A-Z]{2}$", message="Use an ISO 3166-1 alpha-2 code, e.g. BR.")],
+        help_text="Nationality of the author, as an ISO 3166-1 alpha-2 code (BR, JP, PT...). Drives the globe on the Home.",
+    )
 
     class Meta:
         ordering = ["name"]

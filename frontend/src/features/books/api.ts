@@ -9,6 +9,7 @@ import type {
   BookListParams,
   BookWritePayload,
   Category,
+  CountryCount,
   RelatedBook,
   Review,
   ReviewPayload,
@@ -39,6 +40,11 @@ export async function listCategories(signal?: AbortSignal): Promise<Paginated<Ca
     params: { page_size: 100, ordering: "name" },
     signal,
   });
+  return data;
+}
+
+export async function listCountries(signal?: AbortSignal): Promise<CountryCount[]> {
+  const { data } = await apiClient.get<CountryCount[]>("/books/countries/", { signal });
   return data;
 }
 

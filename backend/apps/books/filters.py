@@ -10,6 +10,7 @@ class BookFilter(df.FilterSet):
     isbn = df.CharFilter(method="filter_isbn")
     author = df.CharFilter(field_name="authors__name", lookup_expr="icontains", distinct=True)
     author_id = df.NumberFilter(field_name="authors__id", distinct=True)
+    author_country = df.CharFilter(method="filter_author_country")
     category = df.NumberFilter(field_name="category_id")
     category_slug = df.CharFilter(field_name="category__slug")
     publication_year = df.NumberFilter()
@@ -33,6 +34,10 @@ class BookFilter(df.FilterSet):
             | Q(authors__name__icontains=value)
             | Q(isbn__icontains=value.replace("-", ""))
         ).distinct()
+
+    def filter_author_country(self, queryset, name, value):
+        """?author_country=BR: books by an author of that nationality (ISO alpha-2, any case)."""
+        return queryset.filter(authors__country=value.strip().upper()).distinct()
 
     def filter_isbn(self, queryset, name, value):
         return queryset.filter(isbn=value.replace("-", "").strip())

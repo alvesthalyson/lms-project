@@ -7,7 +7,9 @@ import type { Category } from "@/features/books/types";
 import { FilmGrain } from "@/features/library/components/FilmGrain";
 import "@/features/library/library.css";
 import { usePrefs } from "@/lib/i18n/store";
+import { useT } from "@/lib/i18n/useT";
 
+import { GlobeDialog } from "../globe/GlobeDialog";
 import { AccountBar } from "../components/AccountBar";
 import { ShelfInspector, type InspectorTarget } from "../components/ShelfInspector";
 import { FIRST_ROOM, HOME_ROOMS, placeCategories, shapePoints, type Hotspot, type RoomId } from "../config";
@@ -70,6 +72,17 @@ export function HomePage() {
   const [roomId, setRoomId] = useState<RoomId>(FIRST_ROOM);
   const [open, setOpen] = useState<InspectorTarget | null>(null);
   const close = useCallback(() => setOpen(null), []);
+  const { t } = useT();
+  const [globeOpen, setGlobeOpen] = useState(false);
+  const closeGlobe = useCallback(() => setGlobeOpen(false), []);
+  // A country was chosen on the globe: close it and open the shelf with that country's books.
+  const pickCountry = useCallback(
+    (code: string, name: string) => {
+      setGlobeOpen(false);
+      setOpen({ title: name, kicker: t("globe.kicker"), query: { author_country: code, page_size: 50, ordering: "title" } });
+    },
+    [t],
+  );
 
   const theme = usePrefs((s) => s.theme);
   const room = HOME_ROOMS[roomId];
@@ -101,6 +114,10 @@ export function HomePage() {
           <SpotButton spot={room.picks} className={shelfClass} onClick={openPicks} haspopup>
             <span className={labelClass}>Indicação</span>
           </SpotButton>
+        )}
+
+        {room.globe && (
+          <SpotButton spot={room.globe} className={shelfClass} onClick={() => setGlobeOpen(true)} ariaLabel={t("globe.open")} haspopup />
         )}
 
         {room.portals.map((portal) => (
@@ -140,6 +157,11 @@ export function HomePage() {
             Indicação
           </button>
         )}
+        {room.globe && (
+          <button type="button" className="hm-pill" onClick={() => setGlobeOpen(true)} aria-haspopup="dialog">
+            🌍 {t("globe.open")}
+          </button>
+        )}
         {room.portals.map((portal) => (
           <button key={portal.id} type="button" className="hm-pill hm-pill--portal" onClick={() => setRoomId(portal.to)}>
             {portal.label}
@@ -153,6 +175,7 @@ export function HomePage() {
       <AccountBar />
 
       {open && <ShelfInspector target={open} onClose={close} />}
+      {globeOpen && <GlobeDialog onClose={closeGlobe} onPick={pickCountry} />}
       {/* The Home lives outside AppLayout, so it brings its own toasts (reservation results, errors). */}
       <Toaster />
     </main>

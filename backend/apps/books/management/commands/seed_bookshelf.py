@@ -31,6 +31,7 @@ BOOKS = [
      "The sequel to Noli Me Tangere, following a vengeful return and a plot against the colonial order."),
 ]
 COPIES = 2
+AUTHOR_COUNTRY = {"Haruki Murakami": "JP", "Natsume Soseki": "JP", "Jose Rizal": "PH"}
 
 
 class Command(BaseCommand):
@@ -44,6 +45,9 @@ class Command(BaseCommand):
             if isbn is None:
                 isbn = _isbn13(f"978000000{n:03d}")
             author, _ = Author.objects.get_or_create(name=author_name)
+            if not author.country and author_name in AUTHOR_COUNTRY:
+                author.country = AUTHOR_COUNTRY[author_name]
+                author.save(update_fields=["country", "updated_at"])
             book, was_created = Book.objects.get_or_create(
                 isbn=isbn,
                 defaults={"title": title, "publication_year": year, "category": category, "description": description},

@@ -176,6 +176,11 @@ class BookViewSet(_CatalogueViewSet):
         discovery_service.set_favorite(user=request.user, book=book, wanted=wanted)
         return Response({"is_favorite": wanted})
 
+    @action(detail=False, methods=["get"], url_path="countries", permission_classes=[AllowAny], pagination_class=None)
+    def countries(self, request):
+        """How many books there are per author nationality (feeds the globe). Public."""
+        return Response(discovery_service.country_counts())
+
     @action(detail=True, methods=["get"], url_path="related")
     def related(self, request, pk=None):
         """'Read next' suggestions: readers also borrowed, same author, same category."""

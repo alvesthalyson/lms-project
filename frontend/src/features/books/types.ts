@@ -1,6 +1,14 @@
 export interface Author {
   id: number;
   name: string;
+  /** Nationality, ISO 3166-1 alpha-2 ("BR"); empty when unknown. */
+  country?: string;
+}
+
+/** One row of GET /books/countries/: how many books there are by authors of a country. */
+export interface CountryCount {
+  country: string;
+  books: number;
 }
 
 export interface Category {
@@ -47,6 +55,8 @@ export interface BookListParams {
   available?: boolean;
   /** Only the signed-in reader's wish list. */
   favorite?: boolean;
+  /** Books by an author of this nationality (ISO alpha-2). */
+  author_country?: string;
   ordering?: BookOrdering;
   page?: number;
   page_size?: number;

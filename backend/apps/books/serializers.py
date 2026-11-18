@@ -66,9 +66,16 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class AuthorSerializer(serializers.ModelSerializer):
+    country = serializers.RegexField(
+        r"^[A-Za-z]{2}$", required=False, allow_blank=True, error_messages={"invalid": "Use an ISO 3166-1 alpha-2 code, e.g. BR."}
+    )
+
     class Meta:
         model = Author
-        fields = ["id", "name"]
+        fields = ["id", "name", "country"]
+
+    def validate_country(self, value: str) -> str:
+        return value.strip().upper()
 
 
 # --------------------------------------------------------------------------
