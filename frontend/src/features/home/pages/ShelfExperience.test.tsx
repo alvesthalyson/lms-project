@@ -178,7 +178,8 @@ describe("language and theme", () => {
     renderHome(null);
     const u = userEvent.setup();
 
-    await u.selectOptions(await screen.findByRole("combobox", { name: "Idioma" }), "en");
+    await u.click(await screen.findByRole("combobox", { name: "Idioma" }));
+    await u.click(screen.getByRole("option", { name: "English" }).querySelector("button")!);
     expect(await screen.findByRole("link", { name: "Sign in" })).toBeInTheDocument();
     const [shelf] = await screen.findAllByRole("button", { name: "Poetry" }); // the category name follows the language too
     await u.click(shelf!);
@@ -186,7 +187,8 @@ describe("language and theme", () => {
     expect(await within(dialog).findByRole("button", { name: "Surprise me (R)" })).toBeInTheDocument();
     expect(within(dialog).getByRole("heading", { name: "Poetry" })).toBeInTheDocument();
 
-    await u.selectOptions(screen.getByRole("combobox", { name: "Language" }), "ja");
+    await u.click(screen.getByRole("combobox", { name: "Language" }));
+    await u.click(screen.getByRole("option", { name: "日本語" }).querySelector("button")!);
     expect(await within(dialog).findByRole("button", { name: "おまかせ (R)" })).toBeInTheDocument();
     usePrefs.setState({ lang: "pt" });
   });
