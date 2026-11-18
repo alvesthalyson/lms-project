@@ -73,6 +73,8 @@ export interface Room {
   backgroundDark?: string;
   /** Pictures for other languages (key: language code), for rooms whose painted plaques carry text. Falls back to `background`. */
   backgroundByLang?: Readonly<Record<string, string>>;
+  /** The same for the dark theme (night picture). */
+  backgroundDarkByLang?: Readonly<Record<string, string>>;
   /** Width / height of the picture. */
   aspect: number;
   /** Bookcases. Categories from the API are assigned to them in order, across rooms. */
@@ -92,6 +94,9 @@ const LIBRARY: Room = {
   id: "library",
   background: "/biblioteca.jpg", // light theme: the warm, bright picture
   backgroundDark: "/biblioteca-noite.jpg", // dark theme: the same room at night, recoloured
+  // the painted plaques of the eight shelves in English and Japanese (the book "Indicação" stays as painted)
+  backgroundByLang: { en: "/biblioteca-en.jpg", ja: "/biblioteca-ja.jpg" },
+  backgroundDarkByLang: { en: "/biblioteca-noite-en.jpg", ja: "/biblioteca-noite-ja.jpg" },
   aspect: 1850 / 850,
   signs: true,
   shelves: [

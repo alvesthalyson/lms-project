@@ -88,7 +88,8 @@ export function HomePage() {
   const room = HOME_ROOMS[roomId];
   const portalLabel = (to: RoomId): string => t(to === "library" ? "home.down" : "home.up");
   const base = theme === "dark" && room.backgroundDark ? room.backgroundDark : room.background;
-  const background = room.backgroundByLang?.[lang] ?? base; // painted plaques in the reader's language
+  const inLang = theme === "dark" ? (room.backgroundDarkByLang ?? room.backgroundByLang) : room.backgroundByLang;
+  const background = inLang?.[lang] ?? base; // painted plaques in the reader's language
   // Which category stands on which bookcase: by painted sign where the picture has one, else in list order.
   const { byRoom, placed } = useMemo(() => placeCategories(categories), [categories]);
   const placements = byRoom[roomId];

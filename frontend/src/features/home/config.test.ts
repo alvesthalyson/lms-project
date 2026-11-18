@@ -65,6 +65,14 @@ describe("placeCategories", () => {
   });
 });
 
+describe("the ground floor", () => {
+  it("has the plaques painted in English and Japanese, in the light and in the night picture", () => {
+    const room = HOME_ROOMS.library;
+    expect(room.backgroundByLang).toEqual({ en: "/biblioteca-en.jpg", ja: "/biblioteca-ja.jpg" });
+    expect(room.backgroundDarkByLang).toEqual({ en: "/biblioteca-noite-en.jpg", ja: "/biblioteca-noite-ja.jpg" });
+  });
+});
+
 describe("the second floor", () => {
   it("has the plaques painted in English and Japanese too", () => {
     expect(HOME_ROOMS.upstairs.backgroundByLang).toEqual({ en: "/sala-2-en.jpg", ja: "/sala-2-ja.jpg" });
