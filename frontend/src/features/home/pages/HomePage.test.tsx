@@ -210,7 +210,7 @@ describe("HomePage: language", () => {
     try {
       renderHome();
       expect((await screen.findAllByRole("button", { name: "Poetry" })).length).toBeGreaterThan(0);
-      expect(screen.getAllByRole("button", { name: "Picks" }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("button", { name: "Recommendation" }).length).toBeGreaterThan(0);
       expect(screen.getByRole("link", { name: "Counter mode" })).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Poesia" })).not.toBeInTheDocument();
 

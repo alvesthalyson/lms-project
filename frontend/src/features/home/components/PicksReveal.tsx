@@ -67,7 +67,7 @@ interface PicksRevealProps {
 /**
  * "Indicação": instead of opening a shelf, pages and books fly across the screen and, when they have
  * gone, one book turns up in the middle as the recommendation. It is picked at random among the
- * available books; "Another pick" replays the flight with a different one.
+ * available books; "Another recommendation" replays the flight with a different one.
  */
 export function PicksReveal({ origin, onClose }: PicksRevealProps) {
   const { t, lang } = useT();
