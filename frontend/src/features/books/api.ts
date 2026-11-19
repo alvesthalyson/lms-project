@@ -5,11 +5,14 @@ import { buildBookRequestBody } from "./payload";
 import type {
   Author,
   Book,
+  BookCandidate,
   BookDetail,
+  BookImportPayload,
   BookListParams,
   BookWritePayload,
   Category,
   CountryCount,
+  LookupMode,
   RelatedBook,
   Review,
   ReviewPayload,
@@ -83,5 +86,17 @@ export async function setFavorite(bookId: number, wanted: boolean): Promise<bool
 
 export async function listRelated(bookId: number, signal?: AbortSignal): Promise<RelatedBook[]> {
   const { data } = await apiClient.get<RelatedBook[]>(`/books/${bookId}/related/`, { signal });
+  return data;
+}
+
+/** Librarian import, step 1: what Open Library knows for an ISBN, a title or an author. Nothing is saved. */
+export async function lookupBooks(mode: LookupMode, text: string, signal?: AbortSignal): Promise<BookCandidate[]> {
+  const { data } = await apiClient.get<{ results: BookCandidate[] }>("/books/lookup/", { params: { [mode]: text.trim() }, signal });
+  return data.results;
+}
+
+/** Librarian import, step 2: add the chosen candidate to the catalogue. */
+export async function importBook(payload: BookImportPayload): Promise<BookDetail> {
+  const { data } = await apiClient.post<BookDetail>("/books/import/", payload);
   return data;
 }

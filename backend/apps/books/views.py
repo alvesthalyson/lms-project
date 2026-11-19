@@ -12,6 +12,8 @@ from apps.books.serializers import (
     BookCopySerializer,
     BookCopyUpdateSerializer,
     BookDetailSerializer,
+    BookImportSerializer,
+    BookLookupQuerySerializer,
     BookListSerializer,
     BookWriteSerializer,
     CategorySerializer,
@@ -19,7 +21,7 @@ from apps.books.serializers import (
     ReviewSerializer,
     ReviewWriteSerializer,
 )
-from apps.books.services import book_service, discovery_service
+from apps.books.services import book_service, discovery_service, import_service
 from apps.core.permissions import IsAdmin, IsLibrarian, IsLibrarianOrReadOnly
 from apps.users.models import Role
 
@@ -175,6 +177,24 @@ class BookViewSet(_CatalogueViewSet):
         wanted = request.method == "PUT"
         discovery_service.set_favorite(user=request.user, book=book, wanted=wanted)
         return Response({"is_favorite": wanted})
+
+    @action(detail=False, methods=["get"], url_path="lookup", permission_classes=[IsLibrarian], pagination_class=None)
+    def lookup(self, request):
+        """Librarian+: find a book online by ISBN, title or author. Nothing is saved; see `import_book`."""
+        query = BookLookupQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        results = import_service.lookup(**{k: v or "" for k, v in query.validated_data.items()})
+        return Response({"results": results})
+
+    @action(detail=False, methods=["post"], url_path="import", permission_classes=[IsLibrarian])
+    def import_book(self, request):
+        """Librarian+: add a looked-up book (with new or existing authors and N copies) to the catalogue."""
+        serializer = BookImportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        book = import_service.import_book(serializer.validated_data)
+        response = self._detail(book)
+        response.status_code = status.HTTP_201_CREATED
+        return response
 
     @action(detail=False, methods=["get"], url_path="countries", permission_classes=[AllowAny], pagination_class=None)
     def countries(self, request):

@@ -1,25 +1,14 @@
 import re
 
+from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from .isbn import is_valid_isbn, to_isbn13  # noqa: F401  (re-exported: other code imports it from here)
 from .models import Author, Book, BookCopy, Category, CopyStatus, Review
 
 MAX_COVER_BYTES = 5 * 1024 * 1024
-
-
-def is_valid_isbn(value: str) -> bool:
-    """Checksum validation for a normalised ISBN-10 / ISBN-13 (no hyphens, upper-case)."""
-    if re.fullmatch(r"\d{13}", value):
-        total = sum(int(d) * (1 if i % 2 == 0 else 3) for i, d in enumerate(value[:12]))
-        return (10 - total % 10) % 10 == int(value[12])
-    if re.fullmatch(r"\d{9}[\dX]", value):
-        total = sum(
-            (10 - i) * (10 if d == "X" else int(d)) for i, d in enumerate(value)
-        )
-        return total % 11 == 0
-    return False
 
 
 class ISBNField(serializers.CharField):
@@ -321,3 +310,76 @@ class RelatedBookSerializer(serializers.Serializer):
 
     reason = serializers.ChoiceField(choices=["readers", "author", "category"])
     book = BookListSerializer()
+
+
+# --------------------------------------------------------------------------
+# Librarian import (Open Library)
+# --------------------------------------------------------------------------
+
+
+class BookLookupQuerySerializer(serializers.Serializer):
+    """GET /books/lookup/?isbn=... | ?title=...&author=... (at least one of the three)."""
+
+    isbn = serializers.CharField(required=False, allow_blank=True, max_length=40)
+    title = serializers.CharField(required=False, allow_blank=True, max_length=255)
+    author = serializers.CharField(required=False, allow_blank=True, max_length=255)
+
+    def validate(self, attrs):
+        if not any((attrs.get(key) or "").strip() for key in ("isbn", "title", "author")):
+            raise serializers.ValidationError("Give an ISBN, a title or an author to look up.")
+        return attrs
+
+
+class ISBN13Field(ISBNField):
+    """Like ISBNField, but an ISBN-10 is stored (and checked for duplicates) as its ISBN-13."""
+
+    def to_internal_value(self, data):
+        value = super().to_internal_value(data)
+        return to_isbn13(value) or value
+
+
+class BookImportSerializer(serializers.Serializer):
+    """POST /books/import/: the candidate the librarian picked, plus category, copies and author nationality."""
+
+    isbn = ISBN13Field(
+        max_length=40,
+        validators=[
+            UniqueValidator(
+                queryset=Book.objects.all(),
+                message="A book with this ISBN already exists.",
+            )
+        ],
+    )
+    title = serializers.CharField(max_length=255)
+    author_names = serializers.ListField(
+        child=serializers.CharField(max_length=255), allow_empty=False, max_length=10
+    )
+    publisher = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")
+    publication_year = serializers.IntegerField(required=False, allow_null=True, default=None)
+    pages = serializers.IntegerField(required=False, allow_null=True, min_value=1, default=None)
+    description = serializers.CharField(required=False, allow_blank=True, default="")
+    cover_url = serializers.URLField(max_length=500, required=False, allow_blank=True, default="")
+    category_id = serializers.PrimaryKeyRelatedField(source="category", queryset=Category.objects.all())
+    copies = serializers.IntegerField(required=False, min_value=0, max_value=500, default=1)
+    author_country = serializers.RegexField(r"^[A-Za-z]{2}$", required=False, allow_blank=True, default="")
+
+    def validate_author_names(self, names):
+        cleaned = [" ".join(n.split()) for n in names if n and n.strip()]
+        if not cleaned:
+            raise serializers.ValidationError("At least one author is required.")
+        return cleaned
+
+    def validate_publication_year(self, year):
+        if year is None:
+            return None
+        if year < 1000 or year > timezone.now().year:
+            return None  # Open Library sometimes returns odd years; an unknown year beats a rejected import
+        return year
+
+    def validate_cover_url(self, url):
+        if url and not url.startswith("https://"):
+            raise serializers.ValidationError("The cover URL must start with https://.")
+        return url
+
+    def validate_author_country(self, code):
+        return code.upper()

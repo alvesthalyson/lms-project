@@ -40,6 +40,7 @@ class ErrorCode:
     BOOK_HAS_ACTIVE_LOANS = "book_has_active_loans"
     CATEGORY_IN_USE = "category_in_use"
     AUTHOR_IN_USE = "author_in_use"
+    LOOKUP_UNAVAILABLE = "lookup_unavailable"
 
     # Fines
     FINE_ALREADY_SETTLED = "fine_already_settled"
@@ -58,6 +59,14 @@ class BusinessRuleError(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = "The request conflicts with the current state."
     default_code = "conflict"
+
+
+class LookupUnavailable(APIException):
+    """The external book catalogue (Open Library) did not answer. HTTP 503, so the UI can offer a retry."""
+
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = "The online book catalogue is not answering right now. Try again in a moment."
+    default_code = ErrorCode.LOOKUP_UNAVAILABLE
 
 
 def _flatten(detail, path=""):

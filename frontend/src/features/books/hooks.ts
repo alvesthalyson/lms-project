@@ -4,17 +4,19 @@ import {
   createBook,
   deleteReview,
   getBook,
+  importBook,
   listAuthors,
   listBooks,
   listCategories,
   listCountries,
   listRelated,
   listReviews,
+  lookupBooks,
   saveReview,
   setFavorite,
   updateBook,
 } from "./api";
-import type { BookListParams, BookWritePayload, ReviewPayload } from "./types";
+import type { BookImportPayload, BookListParams, BookWritePayload, LookupMode, ReviewPayload } from "./types";
 
 /** Query-key factory: one place that knows the key shapes, so invalidation can target exactly what changed. */
 export const bookKeys = {
@@ -148,6 +150,26 @@ export function useToggleFavorite() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
       return queryClient.invalidateQueries({ queryKey: bookKeys.details() });
+    },
+  });
+}
+
+/** Search Open Library. A mutation (not a query) because it is an explicit "Search" click, never automatic. */
+export function useLookupBooks() {
+  return useMutation({
+    mutationFn: ({ mode, text }: { mode: LookupMode; text: string }) => lookupBooks(mode, text),
+    meta: { silent: true },
+  });
+}
+
+export function useImportBook() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: BookImportPayload) => importBook(payload),
+    meta: { silent: true },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: bookKeys.countries() }); // a new author country feeds the globe
+      return queryClient.invalidateQueries({ queryKey: bookKeys.lists() });
     },
   });
 }

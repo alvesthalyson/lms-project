@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -14,6 +14,7 @@ import { toast } from "@/lib/toast";
 
 import { BookFiltersBar } from "../components/BookFiltersBar";
 import { BookFormModal, type BookModalState } from "../components/BookFormModal";
+import { ImportBookDialog } from "../components/ImportBookDialog";
 import { BookTable } from "../components/BookTable";
 import {
   DEFAULT_BOOK_FILTERS,
@@ -43,6 +44,7 @@ export function BooksListPage() {
   const reserve = useReserveBook();
 
   const [modal, setModal] = useState<BookModalState | null>(null);
+  const [importing, setImporting] = useState(false);
 
   /** Merge a patch into the filters and write the URL. Changing anything but the page returns to page 1. */
   const updateFilters = useCallback(
@@ -80,10 +82,16 @@ export function BooksListPage() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Books</h1>
         {canManage && (
-          <Button onClick={() => setModal({ mode: "create" })}>
-            <Plus className="h-4 w-4" aria-hidden />
-            Add book
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImporting(true)}>
+              <Download className="h-4 w-4" aria-hidden />
+              Import
+            </Button>
+            <Button onClick={() => setModal({ mode: "create" })}>
+              <Plus className="h-4 w-4" aria-hidden />
+              Add book
+            </Button>
+          </div>
         )}
       </div>
 
@@ -147,6 +155,7 @@ export function BooksListPage() {
       ) : null}
 
       {modal && <BookFormModal state={modal} onClose={() => setModal(null)} />}
+      {importing && <ImportBookDialog onClose={() => setImporting(false)} />}
     </section>
   );
 }

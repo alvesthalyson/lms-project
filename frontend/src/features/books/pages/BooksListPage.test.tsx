@@ -220,3 +220,22 @@ describe("BooksListPage: who sees which actions", () => {
     expect(screen.queryByRole("button", { name: /^Reserve/ })).not.toBeInTheDocument();
   });
 });
+
+describe("BooksListPage: import from Open Library", () => {
+  it("offers the Import button to staff only", async () => {
+    const { unmount } = renderPage({ role: "LIBRARIAN" });
+    expect(await screen.findByRole("button", { name: "Import" })).toBeInTheDocument();
+    unmount();
+
+    renderPage({ role: "MEMBER" });
+    await screen.findByText("Clean Architecture");
+    expect(screen.queryByRole("button", { name: "Import" })).not.toBeInTheDocument();
+  });
+
+  it("opens the import dialog", async () => {
+    const user = userEvent.setup();
+    renderPage({ role: "LIBRARIAN" });
+    await user.click(await screen.findByRole("button", { name: "Import" }));
+    expect(await screen.findByRole("dialog", { name: "Import from Open Library" })).toBeInTheDocument();
+  });
+});

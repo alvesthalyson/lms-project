@@ -417,6 +417,22 @@ List extras: `?favorite=true` (the caller's wish list), `?min_rating=4`, `?order
 `Author` has an optional `country` (ISO 3166-1 alpha-2, stored in capitals; `br` is accepted and saved as `BR`). Books can be listed
 by it with `?author_country=BR`. A book with authors of two countries counts once for each.
 
+#### Librarian import from Open Library (Phase D)
+
+| Method | Path | Who | Result |
+|---|---|---|---|
+| GET | `/books/lookup/?isbn=` or `?title=&author=` | Librarian+ | `{results: [candidate]}`, at most 10. Nothing is saved. 400 when all three are empty, **503 `lookup_unavailable`** when Open Library does not answer |
+| POST | `/books/import/` | Librarian+ | Creates the book from a candidate: 201 with the book detail. 400 on a duplicate ISBN (ISBN-10 and ISBN-13 of the same book count as one) |
+
+A candidate is `{isbn (always ISBN-13), title, authors[], publisher, publication_year, pages, cover_url, subjects[],
+in_catalogue (book id or null), suggested_category_id (or null)}`. `suggested_category_id` comes from keywords in Open Library's
+subjects (poetry -> Poesia, fantasy -> Fantasia, ...); it is only a hint.
+
+Import body: `{isbn, title, author_names[], publisher?, publication_year?, pages?, description?, cover_url? (https), category_id,
+copies? (default 1, max 500), author_country? (ISO alpha-2)}`. Authors are matched by name ignoring case and reused; new ones are
+created with `author_country` (an existing author's country is filled in only when empty, never overwritten, which is what feeds the
+Home globe). A publication year outside 1000..this year is stored as unknown instead of rejecting the import.
+
 Management commands: `seed_bookshelf` (five demo novels, idempotent) and `fetch_covers [--dry-run] [--force] [--limit N]`
 (Open Library; stores only the cover URL).
 

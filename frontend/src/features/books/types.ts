@@ -99,3 +99,36 @@ export interface RelatedBook {
   reason: RelatedReason;
   book: Book;
 }
+
+/** One row of GET /books/lookup/: a book found in Open Library, not yet in the catalogue. */
+export interface BookCandidate {
+  /** Always ISBN-13. */
+  isbn: string;
+  title: string;
+  authors: string[];
+  publisher: string;
+  publication_year: number | null;
+  pages: number | null;
+  cover_url: string;
+  subjects: string[];
+  /** Id of the book when the library already has it (it cannot be imported again). */
+  in_catalogue: number | null;
+  suggested_category_id: number | null;
+}
+
+export type LookupMode = "isbn" | "title" | "author";
+
+/** Body of POST /books/import/. */
+export interface BookImportPayload {
+  isbn: string;
+  title: string;
+  author_names: string[];
+  publisher: string;
+  publication_year: number | null;
+  pages: number | null;
+  cover_url: string;
+  category_id: number;
+  copies: number;
+  /** ISO alpha-2 for authors created by this import; empty when unknown. */
+  author_country: string;
+}
