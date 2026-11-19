@@ -13,6 +13,8 @@ const GRID = graticule();
 export const MIN_ZOOM = 1;
 export const MAX_ZOOM = 10;
 const BUTTON_STEP = 1.6;
+/** The idle spin resumes this long after the reader lets go of the globe. */
+const RESUME_AFTER_MS = 2500;
 const clampZoom = (z: number): number => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
 interface GlobeProps {
@@ -23,7 +25,7 @@ interface GlobeProps {
   describe: (code: string, books: number) => string;
   onPick: (code: string) => void;
   initial?: Rotation;
-  /** Turn slowly until the reader touches it. */
+  /** Turn slowly; pauses while the reader moves the globe and resumes a moment after. */
   autoRotate?: boolean;
 }
 
@@ -52,7 +54,8 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
   const radius = RADIUS * zoom;
   const drag = useRef<{ x: number; y: number; moved: number } | null>(null);
   const busy = useRef(false); // spinning towards a chosen country
-  const touched = useRef(false);
+  /** When the reader last moved the globe by hand; the spin picks up again a few seconds later. */
+  const lastTouch = useRef(0);
 
   const reducedMotion = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const canAnimate = typeof requestAnimationFrame === "function" && !reducedMotion;
@@ -64,7 +67,7 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
     const tick = (): void => {
       // Zooming does not stop the spin (it slows down as you zoom, so it looks the same speed), but pointing at a
       // gold country does, so it stays put under the cursor long enough to be clicked.
-      if (!touched.current && !drag.current && !busy.current && !hoverRef.current) {
+      if (Date.now() - lastTouch.current > RESUME_AFTER_MS && !drag.current && !busy.current && !hoverRef.current) {
         setRot((r) => ({ lon: ((r.lon + 0.12 / zoomRef.current + 540) % 360) - 180, lat: r.lat }));
       }
       frame = requestAnimationFrame(tick);
@@ -76,7 +79,7 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
   const choose = useCallback(
     (code: string): void => {
       const country = world[code];
-      touched.current = true;
+      lastTouch.current = Date.now();
       if (!country || !canAnimate) {
         onPick(code);
         return;
@@ -152,7 +155,7 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
   const grid = GRID.map((line) => linePath(line, rot, C, C, radius)).join("");
 
   const onPointerDown = (e: PointerEvent<SVGSVGElement>): void => {
-    touched.current = true;
+    lastTouch.current = Date.now();
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     drag.current = { x: e.clientX, y: e.clientY, moved: pointers.current.size > 1 ? 99 : 0 };
   };
@@ -185,6 +188,7 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
   };
   const onPointerUp = (e: PointerEvent<SVGSVGElement>): void => {
     pointers.current.delete(e.pointerId);
+    lastTouch.current = Date.now(); // the wait starts when the reader lets go
     if (pointers.current.size < 2) pinch.current = null;
     // A click that ends a real drag must not pick a country.
     window.setTimeout(() => {
@@ -214,7 +218,7 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
     const m = move[e.key];
     if (!m) return;
     e.preventDefault();
-    touched.current = true;
+    lastTouch.current = Date.now();
     setRot((r) => ({ lon: wrapLon(r.lon + m[0]), lat: clampLat(r.lat + m[1]) }));
   };
 
