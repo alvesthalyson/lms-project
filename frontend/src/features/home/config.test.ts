@@ -78,6 +78,12 @@ describe("the second floor", () => {
     expect(HOME_ROOMS.upstairs.backgroundByLang).toEqual({ en: "/sala-2-en.jpg", ja: "/sala-2-ja.jpg" });
   });
 
+  it("has a night picture too, in all three languages", () => {
+    const room = HOME_ROOMS.upstairs;
+    expect(room.backgroundDark).toBe("/sala-2-noite.jpg");
+    expect(room.backgroundDarkByLang).toEqual({ en: "/sala-2-noite-en.jpg", ja: "/sala-2-noite-ja.jpg" });
+  });
+
   it("has the armillary sphere as the globe, outlined along its own shape", () => {
     const globe = HOME_ROOMS.upstairs.globe!;
     expect(globe.shape!.length).toBeGreaterThan(8);

@@ -140,6 +140,8 @@ const UPSTAIRS: Room = {
   id: "upstairs",
   background: "/sala-2.jpg", // Portuguese plaques
   backgroundByLang: { en: "/sala-2-en.jpg", ja: "/sala-2-ja.jpg" }, // the same room with the plaques in English and Japanese
+  backgroundDark: "/sala-2-noite.jpg", // counter mode: the same room at night
+  backgroundDarkByLang: { en: "/sala-2-noite-en.jpg", ja: "/sala-2-noite-ja.jpg" },
   aspect: 1672 / 941,
   signs: true,
   // painted category plaques of the second floor (same look as the ground floor): two on the right bookcases, two at the back

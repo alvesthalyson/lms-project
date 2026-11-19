@@ -214,10 +214,10 @@ describe("HomePage: language", () => {
       expect(screen.getByRole("link", { name: "Counter mode" })).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Poesia" })).not.toBeInTheDocument();
 
-      // upstairs the painted plaques come in the same language
+      // upstairs the painted plaques come in the same language (the default theme is the night picture)
       const user = userEvent.setup();
       await user.click((await screen.findAllByRole("button", { name: "Go up to the second floor" }))[0]!);
-      expect(document.querySelector(".hm-room")).toHaveStyle({ backgroundImage: 'url("/sala-2-en.jpg")' });
+      expect(document.querySelector(".hm-room")).toHaveStyle({ backgroundImage: 'url("/sala-2-noite-en.jpg")' });
     } finally {
       usePrefs.setState({ lang: "pt" });
     }
