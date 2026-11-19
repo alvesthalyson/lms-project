@@ -283,7 +283,7 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
               />
             );
           })}
-          </g>
+        </g>
         <circle className="gl-shade" cx={C} cy={C} r={RADIUS} fill="url(#gl-shade)" pointerEvents="none" />
         <circle className="gl-rim" cx={C} cy={C} r={RADIUS} fill="none" pointerEvents="none" />
       </svg>
