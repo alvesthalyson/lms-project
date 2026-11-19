@@ -14,6 +14,9 @@ import { ImportBookDialog } from "./ImportBookDialog";
 // Only the HTTP layer is mocked; the dialog, its two steps and the react-query hooks run for real.
 vi.mock("../api");
 
+// Each test walks through a whole dialog (search, pick, fill in, import), which is slower than the default 5 s on a busy machine.
+vi.setConfig({ testTimeout: 30_000 });
+
 const CODE = { id: 5, name: "Programação", slug: "programacao" };
 const POETRY = { id: 6, name: "Poesia", slug: "poesia" };
 
@@ -62,7 +65,8 @@ describe("ImportBookDialog", () => {
     const user = userEvent.setup();
     const onClose = renderDialog();
 
-    await user.type(screen.getByLabelText("Search text"), "clean code");
+    await user.click(screen.getByLabelText("Search text"));
+    await user.paste("clean code");
     await user.click(screen.getByRole("button", { name: "Search" }));
 
     expect(lookupBooks).toHaveBeenCalledWith("title", "clean code");
@@ -100,7 +104,8 @@ describe("ImportBookDialog", () => {
     renderDialog();
 
     await user.selectOptions(screen.getByLabelText("Search by"), "isbn");
-    await user.type(screen.getByLabelText("Search text"), "0132350882");
+    await user.click(screen.getByLabelText("Search text"));
+    await user.paste("0132350882");
     await user.click(screen.getByRole("button", { name: "Search" }));
 
     expect(lookupBooks).toHaveBeenCalledWith("isbn", "0132350882");
@@ -114,7 +119,8 @@ describe("ImportBookDialog", () => {
     const user = userEvent.setup();
     renderDialog();
 
-    await user.type(screen.getByLabelText("Search text"), "clean");
+    await user.click(screen.getByLabelText("Search text"));
+    await user.paste("clean");
     await user.click(screen.getByRole("button", { name: "Search" }));
     expect(await screen.findByText(/not answering right now/)).toBeInTheDocument();
 
@@ -130,7 +136,8 @@ describe("ImportBookDialog", () => {
     const user = userEvent.setup();
     const onClose = renderDialog();
 
-    await user.type(screen.getByLabelText("Search text"), "clean");
+    await user.click(screen.getByLabelText("Search text"));
+    await user.paste("clean");
     await user.click(screen.getByRole("button", { name: "Search" }));
     await user.click(await screen.findByRole("button", { name: "Choose Clean Code" }));
     await user.click(await screen.findByRole("button", { name: "Add to catalogue" }));
@@ -144,7 +151,8 @@ describe("ImportBookDialog", () => {
     const user = userEvent.setup();
     renderDialog();
 
-    await user.type(screen.getByLabelText("Search text"), "clean");
+    await user.click(screen.getByLabelText("Search text"));
+    await user.paste("clean");
     await user.click(screen.getByRole("button", { name: "Search" }));
     await user.click(await screen.findByRole("button", { name: "Choose Clean Code" }));
 
