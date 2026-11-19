@@ -43,6 +43,8 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
   rotRef.current = rot;
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
+  const hoverRef = useRef<string | null>(null);
+  hoverRef.current = hover;
   const svgRef = useRef<SVGSVGElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<number | null>(null);
@@ -60,8 +62,10 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
     if (!autoRotate || !canAnimate) return;
     let frame = 0;
     const tick = (): void => {
-      if (!touched.current && !drag.current && !busy.current) {
-        setRot((r) => ({ lon: ((r.lon + 0.12 + 540) % 360) - 180, lat: r.lat }));
+      // Zooming does not stop the spin (it slows down as you zoom, so it looks the same speed), but pointing at a
+      // gold country does, so it stays put under the cursor long enough to be clicked.
+      if (!touched.current && !drag.current && !busy.current && !hoverRef.current) {
+        setRot((r) => ({ lon: ((r.lon + 0.12 / zoomRef.current + 540) % 360) - 180, lat: r.lat }));
       }
       frame = requestAnimationFrame(tick);
     };
@@ -102,7 +106,6 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
     const oldZoom = zoomRef.current;
     const next = clampZoom(oldZoom * factor);
     if (next === oldZoom) return;
-    touched.current = true;
     const oldRadius = RADIUS * oldZoom;
     const anchor = invert((sx - C) / oldRadius, (sy - C) / oldRadius, rotRef.current);
     const newRadius = RADIUS * next;
@@ -140,7 +143,6 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
 
   const centre = (factor: number): void => zoomAt(factor, C, C);
   const resetZoom = (): void => {
-    touched.current = true;
     setZoom(1);
   };
 
