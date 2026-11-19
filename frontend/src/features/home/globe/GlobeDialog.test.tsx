@@ -158,19 +158,4 @@ describe("GlobeDialog", () => {
       expect(reset).toHaveTextContent("1×");
     });
   });
-
-  it("marks a small country that has books with a gold dot, and opens it when the dot is clicked", async () => {
-    // Sri Lanka-sized: about 2 degrees across, so it would be a speck on the globe.
-    const small: World = { ...WORLD, LK: { c: [-40, 15], r: [[-41, 14, -39, 14, -39, 16, -41, 16]] } };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => small }));
-    vi.mocked(listCountries).mockResolvedValue([{ country: "LK", books: 5 }]);
-    const user = userEvent.setup();
-    const { onPick } = renderDialog();
-
-    await screen.findAllByRole("button", { name: /Sri Lanka: 5 livros/ });
-    const dot = document.querySelector(".gl-marker")!;
-    expect(dot).toBeInTheDocument();
-    await user.click(dot);
-    await waitFor(() => expect(onPick).toHaveBeenCalledWith("LK", expect.any(String)));
-  });
 });

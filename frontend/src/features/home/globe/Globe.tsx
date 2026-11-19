@@ -13,29 +13,7 @@ const GRID = graticule();
 export const MIN_ZOOM = 1;
 export const MAX_ZOOM = 10;
 const BUTTON_STEP = 1.6;
-/** Below this many degrees across, a country is too small to hit comfortably: it also gets a gold marker. */
-const SMALL_DEGREES = 7;
-/** Above this zoom even the small ones are big enough, so the markers go away. */
-const MARKERS_UNTIL = 4;
-
 const clampZoom = (z: number): number => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
-
-/** Largest angular size (degrees, roughly) of any ring of a country. */
-function spanOf(rings: readonly (readonly number[])[]): number {
-  let best = 0;
-  for (const ring of rings) {
-    let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
-    for (let i = 0; i + 1 < ring.length; i += 2) {
-      minLon = Math.min(minLon, ring[i]!);
-      maxLon = Math.max(maxLon, ring[i]!);
-      minLat = Math.min(minLat, ring[i + 1]!);
-      maxLat = Math.max(maxLat, ring[i + 1]!);
-    }
-    const midLat = (minLat + maxLat) / 2;
-    best = Math.max(best, (maxLon - minLon) * Math.cos((midLat * Math.PI) / 180), maxLat - minLat);
-  }
-  return best;
-}
 
 interface GlobeProps {
   world: World;
@@ -171,12 +149,6 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
 
   const grid = GRID.map((line) => linePath(line, rot, C, C, radius)).join("");
 
-  // Countries with books that are too small to click comfortably also get a pulsing gold marker.
-  const small = useMemo(
-    () => Object.keys(world).filter((code) => counts[code] && spanOf(world[code]!.r) < SMALL_DEGREES),
-    [world, counts],
-  );
-
   const onPointerDown = (e: PointerEvent<SVGSVGElement>): void => {
     touched.current = true;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -311,30 +283,7 @@ export function Globe({ world, counts, describe, onPick, initial = START, autoRo
               />
             );
           })}
-          {zoom < MARKERS_UNTIL &&
-            small.map((code) => {
-              const country = world[code]!;
-              const p = project(country.c[0], country.c[1], rot);
-              if (!p.visible) return null;
-              return (
-                <g
-                  key={`mk-${code}`}
-                  className={`gl-marker${hover === code ? " is-hover" : ""}`}
-                  transform={`translate(${(C + p.x * radius).toFixed(1)} ${(C + p.y * radius).toFixed(1)})`}
-                  aria-hidden
-                  onPointerEnter={() => setHover(code)}
-                  onPointerLeave={() => setHover((h) => (h === code ? null : h))}
-                  onClick={() => {
-                    if (!wasDragged()) choose(code);
-                  }}
-                >
-                  <circle className="gl-marker-hit" r={9} />
-                  <circle className="gl-marker-pulse" r={5} />
-                  <circle className="gl-marker-dot" r={3.2} />
-                </g>
-              );
-            })}
-        </g>
+          </g>
         <circle className="gl-shade" cx={C} cy={C} r={RADIUS} fill="url(#gl-shade)" pointerEvents="none" />
         <circle className="gl-rim" cx={C} cy={C} r={RADIUS} fill="none" pointerEvents="none" />
       </svg>
