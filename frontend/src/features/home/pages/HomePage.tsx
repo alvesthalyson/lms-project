@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { Toaster } from "@/components/Toaster";
@@ -11,6 +11,7 @@ import { useT } from "@/lib/i18n/useT";
 
 import { GlobeDialog } from "../globe/GlobeDialog";
 import { AccountBar } from "../components/AccountBar";
+import { PicksReveal, type RevealOrigin } from "../components/PicksReveal";
 import { ShelfInspector, type InspectorTarget } from "../components/ShelfInspector";
 import { FIRST_ROOM, HOME_ROOMS, placeCategories, shapePoints, type Hotspot, type RoomId } from "../config";
 import "../home.css";
@@ -30,7 +31,7 @@ function spotStyle(spot: Hotspot): CSSProperties {
 interface SpotButtonProps {
   spot: Hotspot;
   className: string;
-  onClick: () => void;
+  onClick: (event: MouseEvent<HTMLElement>) => void;
   /** Accessible name, when the button has no visible text. */
   ariaLabel?: string;
   /** Faint breathing contour that hints that the shape is clickable (the staircase). */
@@ -73,6 +74,8 @@ export function HomePage() {
   const [open, setOpen] = useState<InspectorTarget | null>(null);
   const close = useCallback(() => setOpen(null), []);
   const { t, catName, lang } = useT();
+  const [reveal, setReveal] = useState<RevealOrigin | null>(null);
+  const closeReveal = useCallback(() => setReveal(null), []);
   const [globeOpen, setGlobeOpen] = useState(false);
   const closeGlobe = useCallback(() => setGlobeOpen(false), []);
   // A country was chosen on the globe: close it and open the shelf with that country's books.
@@ -99,8 +102,13 @@ export function HomePage() {
 
   const openCategory = (category: Category): void =>
     setOpen({ title: catName(category), kicker: t("home.shelfKicker"), query: { category: category.id, page_size: 50, ordering: "title" } });
-  const openPicks = (): void =>
-    setOpen({ title: t("home.picks"), kicker: t("home.picksKicker"), query: { available: true, ordering: "-created_at", page_size: 12 } });
+  // The flight starts from whatever was clicked (the painted book, or the dock pill).
+  const openPicks = (event: MouseEvent<HTMLElement>): void => {
+    const box = event.currentTarget.getBoundingClientRect();
+    const w = window.innerWidth || 1;
+    const h = window.innerHeight || 1;
+    setReveal({ x: (box.left + box.width / 2) / w, y: (box.top + box.height / 2) / h });
+  };
 
   return (
     <main className={signs ? "hm-root hm-root--signs" : "hm-root"}>
@@ -177,6 +185,7 @@ export function HomePage() {
 
       <AccountBar />
 
+      {reveal && <PicksReveal origin={reveal} onClose={closeReveal} />}
       {open && <ShelfInspector target={open} onClose={close} />}
       {globeOpen && <GlobeDialog onClose={closeGlobe} onPick={pickCountry} />}
       {/* The Home lives outside AppLayout, so it brings its own toasts (reservation results, errors). */}

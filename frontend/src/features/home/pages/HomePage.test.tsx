@@ -223,3 +223,34 @@ describe("HomePage: language", () => {
     }
   });
 });
+
+describe("HomePage: Indicação", () => {
+  it("shows a recommended book in the middle of the screen instead of a shelf, and can pick another", async () => {
+    const user = userEvent.setup();
+    renderHome();
+
+    const [picks] = await screen.findAllByRole("button", { name: "Indicação" });
+    await user.click(picks!);
+
+    const stage = await screen.findByRole("dialog", { name: "Indicação" });
+    expect(await within(stage).findByRole("heading", { level: 2 })).toHaveTextContent(/Antologia Poética|Poesias Completas/);
+    expect(within(stage).getByText("Indicações da casa")).toBeInTheDocument();
+    expect(listBooks).toHaveBeenCalledWith(expect.objectContaining({ available: true }), expect.anything());
+
+    await user.click(within(stage).getByRole("button", { name: "Outra indicação" }));
+    expect(await within(stage).findByRole("heading", { level: 2 })).toBeInTheDocument();
+
+    await user.click(within(stage).getByRole("button", { name: "Fechar indicação" }));
+    expect(screen.queryByRole("dialog", { name: "Indicação" })).not.toBeInTheDocument();
+  });
+
+  it("says so when there is nothing to recommend", async () => {
+    vi.mocked(listBooks).mockResolvedValue(pageOf([]));
+    const user = userEvent.setup();
+    renderHome();
+
+    const [picks] = await screen.findAllByRole("button", { name: "Indicação" });
+    await user.click(picks!);
+    expect(await screen.findByText("Ainda não há livros disponíveis para indicar.")).toBeInTheDocument();
+  });
+});
