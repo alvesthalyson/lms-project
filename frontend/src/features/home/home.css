@@ -431,3 +431,20 @@
   .pk-rays, .pk-book, .pk-shine { animation: none; }
 }
 @keyframes pk-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── globe zoom ── */
+.gl-globe { position: relative; }
+.gl-zoom { position: absolute; right: -4px; top: 50%; translate: 0 -50%; display: grid; gap: 6px; }
+.gl-zoom-btn { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; font: 600 1.05rem Georgia, serif; line-height: 1; color: #ffe8b0; cursor: pointer;
+  background: rgba(10, 6, 3, 0.72); border: 1px solid rgba(233, 192, 106, 0.6); border-radius: 50%; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.gl-zoom-btn:hover:not(:disabled), .gl-zoom-btn:focus-visible { background: rgba(233, 192, 106, 0.28); outline: none; }
+.gl-zoom-btn:disabled { opacity: 0.38; cursor: default; }
+.gl-zoom-val { font-size: 0.7rem; letter-spacing: 0; }
+:root[data-theme="light"] .gl-zoom-btn { color: #5a2d0e; background: rgba(250, 243, 226, 0.9); border-color: rgba(122, 79, 26, 0.7); }
+.gl-marker { cursor: pointer; }
+.gl-marker-hit { fill: transparent; }
+.gl-marker-dot { fill: #ffd56b; stroke: #fff6cf; stroke-width: 1; filter: drop-shadow(0 0 4px rgba(255, 205, 90, 0.95)); pointer-events: none; }
+.gl-marker-pulse { fill: none; stroke: #ffd56b; stroke-width: 1.4; pointer-events: none; transform-box: fill-box; transform-origin: center; animation: gl-pulse 1.8s ease-out infinite; }
+.gl-marker:hover .gl-marker-dot, .gl-marker.is-hover .gl-marker-dot { fill: #fff0b0; }
+@keyframes gl-pulse { 0% { transform: scale(0.8); opacity: 0.9; } 100% { transform: scale(3.2); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .gl-marker-pulse { animation: none; opacity: 0.6; } }

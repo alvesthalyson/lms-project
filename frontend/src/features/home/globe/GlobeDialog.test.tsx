@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -100,5 +100,77 @@ describe("GlobeDialog", () => {
     await user.pointer({ keys: "[MouseLeft]", target: document.querySelector(".hm-backdrop")! });
 
     expect(onClose).toHaveBeenCalledTimes(3);
+  });
+
+  describe("zoom", () => {
+    it("zooms with the + and - buttons and goes back with the reset button", async () => {
+      const user = userEvent.setup();
+      renderDialog();
+      await screen.findAllByRole("button", { name: "Brasil: 3 livros" });
+
+      const reset = screen.getByRole("button", { name: "Voltar ao tamanho inicial" });
+      expect(reset).toBeDisabled();
+      expect(reset).toHaveTextContent("1×");
+
+      await user.click(screen.getByRole("button", { name: "Aproximar" }));
+      expect(reset).toHaveTextContent("1.6×");
+      await user.click(screen.getByRole("button", { name: "Aproximar" }));
+      expect(reset).toHaveTextContent("2.6×");
+      await user.click(screen.getByRole("button", { name: "Afastar" }));
+      expect(reset).toHaveTextContent("1.6×");
+
+      await user.click(reset);
+      expect(reset).toHaveTextContent("1×");
+      expect(screen.getByRole("button", { name: "Afastar" })).toBeDisabled();
+    });
+
+    it("zooms with the mouse wheel over the globe (and not past the limits)", async () => {
+      renderDialog();
+      await screen.findAllByRole("button", { name: "Brasil: 3 livros" });
+      const globe = screen.getByRole("group", { name: "Globo" });
+      const reset = screen.getByRole("button", { name: "Voltar ao tamanho inicial" });
+
+      fireEvent.wheel(globe, { deltaY: -300, clientX: 10, clientY: 10 });
+      const zoomed = Number.parseFloat(reset.textContent ?? "1");
+      expect(zoomed).toBeGreaterThan(1.3);
+
+      fireEvent.wheel(globe, { deltaY: 300, clientX: 10, clientY: 10 });
+      expect(Number.parseFloat(reset.textContent ?? "1")).toBeLessThan(zoomed);
+
+      for (let i = 0; i < 40; i++) fireEvent.wheel(globe, { deltaY: -400 });
+      expect(reset).toHaveTextContent("10×");
+      expect(screen.getByRole("button", { name: "Aproximar" })).toBeDisabled();
+      for (let i = 0; i < 80; i++) fireEvent.wheel(globe, { deltaY: 400 });
+      expect(reset).toHaveTextContent("1×");
+    });
+
+    it("zooms with the keyboard too", async () => {
+      const user = userEvent.setup();
+      renderDialog();
+      await screen.findAllByRole("button", { name: "Brasil: 3 livros" });
+      const globe = screen.getByRole("group", { name: "Globo" });
+      const reset = screen.getByRole("button", { name: "Voltar ao tamanho inicial" });
+
+      globe.focus();
+      await user.keyboard("+");
+      expect(reset).toHaveTextContent("1.6×");
+      await user.keyboard("0");
+      expect(reset).toHaveTextContent("1×");
+    });
+  });
+
+  it("marks a small country that has books with a gold dot, and opens it when the dot is clicked", async () => {
+    // Sri Lanka-sized: about 2 degrees across, so it would be a speck on the globe.
+    const small: World = { ...WORLD, LK: { c: [-40, 15], r: [[-41, 14, -39, 14, -39, 16, -41, 16]] } };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => small }));
+    vi.mocked(listCountries).mockResolvedValue([{ country: "LK", books: 5 }]);
+    const user = userEvent.setup();
+    const { onPick } = renderDialog();
+
+    await screen.findAllByRole("button", { name: /Sri Lanka: 5 livros/ });
+    const dot = document.querySelector(".gl-marker")!;
+    expect(dot).toBeInTheDocument();
+    await user.click(dot);
+    await waitFor(() => expect(onPick).toHaveBeenCalledWith("LK", expect.any(String)));
   });
 });
