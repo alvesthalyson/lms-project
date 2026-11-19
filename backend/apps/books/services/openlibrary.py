@@ -122,3 +122,32 @@ def search_books(*, isbn: str = "", title: str = "", author: str = "", limit: in
             seen.add(item["isbn"])
             found.append(item)
     return found
+
+
+def cover_exists(url: str) -> bool:
+    """True when the cover URL serves a real picture (Open Library answers 404 with ?default=false when it has none)."""
+    probe = url + ("&" if "?" in url else "?") + "default=false" if "covers.openlibrary.org" in url else url
+    request = urllib.request.Request(probe, method="HEAD", headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:  # noqa: S310 (https only, see callers)
+            length = int(response.headers.get("Content-Length") or 0)
+            return response.status == 200 and (length == 0 or length > 1500)  # a 1x1 placeholder is a few hundred bytes
+    except urllib.error.HTTPError as exc:
+        if exc.code in (403, 404):
+            return False
+        raise NetworkProblem(str(exc)) from exc
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        raise NetworkProblem(str(exc)) from exc
+
+
+def find_edition_with_cover(*, title: str, author: str) -> dict | None:
+    """
+    The first search result that is this work (its base title matches) and has a real cover photo,
+    as a candidate dict (see `search_books`). None when no edition of it has a cover.
+    """
+    wanted = _normalize(base_title(title))
+    for item in search_books(title=title, author=author, limit=20):
+        found = _normalize(base_title(item["title"]))
+        if item["cover_url"] and (found == wanted or wanted in found or found in wanted) and cover_exists(item["cover_url"]):
+            return item
+    return None

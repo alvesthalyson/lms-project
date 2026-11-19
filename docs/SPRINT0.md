@@ -50,6 +50,18 @@ Afterwards: `docker compose up`, then open <http://localhost:5173> (site) and <h
 1. Commit the generated `backend/apps/*/migrations/` and `frontend/package-lock.json`.
 2. Create the demo content: categories exist after step 7, books do not yet.
 
+## Famous books of seven countries (`-Step world`, needs internet)
+
+`seed_famous_books` walks `backend/apps/books/famous.py` for Sri Lanka, Nepal, Bangladesh, China, Mongolia, Brazil and Japan in
+order of fame, asks Open Library for each title and keeps the first five **that have a real cover photo**. A book the library
+already has (same ISBN in either form, or the same title by the same author) is ignored. Authors get their nationality, so the books
+show up on the Home globe. Options: `--dry-run`, `--copies N`, `--country JP`.
+
+`curate_covers --apply` then gives every coverless book (or one whose cover link is dead) a cover from Open Library, and removes the
+ones that cannot get one: **deleted** when it never had loans or reservations, otherwise only made inactive, and left alone while
+copies are out on loan. Without `--apply` it only reports. Mongolia may end up with fewer than five: little of its literature has
+covers on Open Library, and the command says so instead of filling the gap with other countries' books.
+
 ## If a step fails
 
 Send the last ~40 lines of that step's output. Likely suspects, in order:
