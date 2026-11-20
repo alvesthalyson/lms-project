@@ -254,3 +254,22 @@ describe("HomePage: Indicação", () => {
     expect(await screen.findByText("Ainda não há livros disponíveis para indicar.")).toBeInTheDocument();
   });
 });
+
+describe("HomePage: sound", () => {
+  it("is off until the reader turns it on with the speaker button, and remembers the choice", async () => {
+    const { usePrefs } = await import("@/lib/i18n/store");
+    usePrefs.setState({ sound: false });
+    const user = userEvent.setup();
+    renderHome();
+
+    const on = await screen.findByRole("button", { name: "Ligar o som" });
+    await user.click(on);
+    expect(await screen.findByRole("button", { name: "Desligar o som" })).toBeInTheDocument();
+    expect(usePrefs.getState().sound).toBe(true);
+    expect(window.localStorage.getItem("lms.sound")).toBe("on");
+
+    await user.click(screen.getByRole("button", { name: "Desligar o som" }));
+    expect(usePrefs.getState().sound).toBe(false);
+    expect(window.localStorage.getItem("lms.sound")).toBe("off");
+  });
+});

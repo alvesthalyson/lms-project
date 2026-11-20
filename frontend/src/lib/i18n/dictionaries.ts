@@ -12,6 +12,8 @@ export const pt = {
   "prefs.language": "Idioma",
   "prefs.toLight": "Tema claro",
   "prefs.toDark": "Tema escuro",
+  "prefs.soundOn": "Ligar o som",
+  "prefs.soundOff": "Desligar o som",
 
   "shelf.back": "Voltar à sala",
   "shelf.searchLabel": "Buscar nesta estante",
@@ -127,6 +129,8 @@ const en: Dictionary = {
   "prefs.language": "Language",
   "prefs.toLight": "Light theme",
   "prefs.toDark": "Dark theme",
+  "prefs.soundOn": "Turn sound on",
+  "prefs.soundOff": "Turn sound off",
 
   "shelf.back": "Back to the room",
   "shelf.searchLabel": "Search this shelf",
@@ -239,6 +243,8 @@ const ja: Dictionary = {
   "prefs.language": "言語",
   "prefs.toLight": "ライトテーマ",
   "prefs.toDark": "ダークテーマ",
+  "prefs.soundOn": "サウンドをオン",
+  "prefs.soundOff": "サウンドをオフ",
 
   "shelf.back": "部屋に戻る",
   "shelf.searchLabel": "この棚を検索",

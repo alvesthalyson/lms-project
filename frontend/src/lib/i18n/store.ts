@@ -1,11 +1,14 @@
 import { create } from "zustand";
 
+import { restoreSoundEnabled, setSoundEnabled } from "@/lib/sound/engine";
+
 import { DICTIONARIES, LANGUAGES, type Key, type Lang } from "./dictionaries";
 
 export type Theme = "dark" | "light";
 
 const LANG_KEY = "lms.lang";
 const THEME_KEY = "lms.theme";
+const SOUND_KEY = "lms.sound";
 
 function read(key: string): string | null {
   try {
@@ -34,6 +37,11 @@ export function initialTheme(): Theme {
   return read(THEME_KEY) === "light" ? "light" : "dark";
 }
 
+/** Silent unless the reader turned sound on before. */
+export function initialSound(): boolean {
+  return read(SOUND_KEY) === "on";
+}
+
 function applyToDocument(lang: Lang, theme: Theme): void {
   if (typeof document === "undefined") return;
   document.documentElement.lang = lang === "pt" ? "pt-BR" : lang;
@@ -43,13 +51,16 @@ function applyToDocument(lang: Lang, theme: Theme): void {
 interface PrefsState {
   lang: Lang;
   theme: Theme;
+  sound: boolean;
   setLang: (lang: Lang) => void;
   setTheme: (theme: Theme) => void;
+  setSound: (on: boolean) => void;
 }
 
 export const usePrefs = create<PrefsState>()((set, get) => ({
   lang: initialLang(),
   theme: initialTheme(),
+  sound: initialSound(),
   setLang: (lang) => {
     write(LANG_KEY, lang);
     set({ lang });
@@ -60,7 +71,15 @@ export const usePrefs = create<PrefsState>()((set, get) => ({
     set({ theme });
     applyToDocument(get().lang, theme);
   },
+  setSound: (on) => {
+    write(SOUND_KEY, on ? "on" : "off");
+    set({ sound: on });
+    setSoundEnabled(on); // called from the click, which is what lets the browser start audio
+  },
 }));
+
+// A reader who left sound on gets it back; the browser wakes the audio on their first click.
+if (initialSound()) restoreSoundEnabled();
 
 export type Vars = Record<string, string | number>;
 

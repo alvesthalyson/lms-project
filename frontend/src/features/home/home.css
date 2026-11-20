@@ -441,3 +441,5 @@
 .gl-zoom-btn:disabled { opacity: 0.38; cursor: default; }
 .gl-zoom-val { font-size: 0.7rem; letter-spacing: 0; }
 :root[data-theme="light"] .gl-zoom-btn { color: #5a2d0e; background: rgba(250, 243, 226, 0.9); border-color: rgba(122, 79, 26, 0.7); }
+
+.hm-sound { min-width: 0; padding-inline: 0.8em; }

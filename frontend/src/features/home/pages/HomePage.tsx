@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { Toaster } from "@/components/Toaster";
@@ -7,6 +7,7 @@ import type { Category } from "@/features/books/types";
 import { FilmGrain } from "@/features/library/components/FilmGrain";
 import "@/features/library/library.css";
 import { usePrefs } from "@/lib/i18n/store";
+import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
 import { GlobeDialog } from "../globe/GlobeDialog";
@@ -81,11 +82,18 @@ export function HomePage() {
   // A country was chosen on the globe: close it and open the shelf with that country's books.
   const pickCountry = useCallback(
     (code: string, name: string) => {
+      sfx.pickCountry();
       setGlobeOpen(false);
       setOpen({ title: name, kicker: t("globe.kicker"), query: { author_country: code, page_size: 50, ordering: "title" } });
     },
     [t],
   );
+
+  // Room tone and a crackling fire while the Home is open (only when the reader has sound on).
+  useEffect(() => {
+    sfx.startAmbient();
+    return () => sfx.stopAmbient();
+  }, []);
 
   const theme = usePrefs((s) => s.theme);
   const room = HOME_ROOMS[roomId];
@@ -100,8 +108,18 @@ export function HomePage() {
   const shelfClass = signs ? "hm-shelf hm-shelf--sign" : "hm-shelf";
   const labelClass = signs ? "hm-label hm-label--painted" : "hm-label";
 
-  const openCategory = (category: Category): void =>
+  const openCategory = (category: Category): void => {
+    sfx.openShelf();
     setOpen({ title: catName(category), kicker: t("home.shelfKicker"), query: { category: category.id, page_size: 50, ordering: "title" } });
+  };
+  const openGlobe = (): void => {
+    sfx.globeOpen();
+    setGlobeOpen(true);
+  };
+  const goTo = (to: RoomId): void => {
+    sfx.stairs();
+    setRoomId(to);
+  };
   // The flight starts from whatever was clicked (the painted book, or the dock pill).
   const openPicks = (event: MouseEvent<HTMLElement>): void => {
     const box = event.currentTarget.getBoundingClientRect();
@@ -128,7 +146,7 @@ export function HomePage() {
         )}
 
         {room.globe && (
-          <SpotButton spot={room.globe} className={shelfClass} onClick={() => setGlobeOpen(true)} ariaLabel={t("globe.open")} haspopup />
+          <SpotButton spot={room.globe} className={shelfClass} onClick={openGlobe} ariaLabel={t("globe.open")} haspopup />
         )}
 
         {room.portals.map((portal) => (
@@ -136,7 +154,7 @@ export function HomePage() {
             key={portal.id}
             spot={portal}
             className="hm-shelf hm-portal"
-            onClick={() => setRoomId(portal.to)}
+            onClick={() => goTo(portal.to)}
             ariaLabel={portalLabel(portal.to)}
             hint={portal.glow}
             glow={portal.glow}
@@ -169,12 +187,12 @@ export function HomePage() {
           </button>
         )}
         {room.globe && (
-          <button type="button" className="hm-pill" onClick={() => setGlobeOpen(true)} aria-haspopup="dialog">
+          <button type="button" className="hm-pill" onClick={openGlobe} aria-haspopup="dialog">
             🌍 {t("globe.open")}
           </button>
         )}
         {room.portals.map((portal) => (
-          <button key={portal.id} type="button" className="hm-pill hm-pill--portal" onClick={() => setRoomId(portal.to)}>
+          <button key={portal.id} type="button" className="hm-pill hm-pill--portal" onClick={() => goTo(portal.to)}>
             {portalLabel(portal.to)}
           </button>
         ))}

@@ -68,11 +68,22 @@ function Preferences() {
   const theme = usePrefs((s) => s.theme);
   const setLang = usePrefs((s) => s.setLang);
   const setTheme = usePrefs((s) => s.setTheme);
+  const sound = usePrefs((s) => s.sound);
+  const setSound = usePrefs((s) => s.setSound);
   return (
     <>
       <LanguagePicker lang={lang} label={t("prefs.language")} onPick={setLang} />
       <button type="button" className="hm-pill hm-pill--ghost" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
         {theme === "dark" ? t("prefs.toLight") : t("prefs.toDark")}
+      </button>
+      <button
+        type="button"
+        className="hm-pill hm-pill--ghost hm-sound"
+        aria-label={sound ? t("prefs.soundOff") : t("prefs.soundOn")}
+        title={sound ? t("prefs.soundOff") : t("prefs.soundOn")}
+        onClick={() => setSound(!sound)}
+      >
+        <span aria-hidden>{sound ? "🔊" : "🔇"}</span>
       </button>
     </>
   );

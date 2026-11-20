@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { useBooks } from "@/features/books/hooks";
 import type { Book } from "@/features/books/types";
 import { useT } from "@/lib/i18n/useT";
+import * as sfx from "@/lib/sound/engine";
 
 import { hueFromTitle } from "../coverTint";
 import { Stars } from "../Stars";
@@ -15,6 +16,8 @@ export interface RevealOrigin {
 }
 
 const FLYERS = 30;
+/** Seconds after the click when the recommended book appears (the delay of .pk-hero in home.css). */
+const ARRIVES_AFTER = 2.3;
 
 /** Deterministic 0..1 noise, so a flight has the same shape in every render (and in tests). */
 function rnd(i: number, salt: number): number {
@@ -24,6 +27,7 @@ function rnd(i: number, salt: number): number {
 
 interface Flyer {
   kind: "page" | "book";
+  delay: number;
   style: CSSProperties;
   hue: number;
   cover: string | null;
@@ -55,7 +59,7 @@ function makeFlyers(origin: RevealOrigin, covers: string[], round: number): Flye
       "--delay": `${r(11) * 0.85}s`,
     } as CSSProperties;
     const cover = book && covers.length > 0 ? (covers[i % covers.length] ?? null) : null;
-    return { kind: book ? "book" : "page", style, hue: Math.floor(r(12) * 360), cover };
+    return { kind: book ? "book" : "page", delay: r(11) * 0.85, style, hue: Math.floor(r(12) * 360), cover };
   });
 }
 
@@ -101,6 +105,11 @@ export function PicksReveal({ origin, onClose }: PicksRevealProps) {
   }, [onClose, detail]);
 
   const ready = !isLoading && pick !== undefined;
+
+  // The sound follows the flight: pages and books as they leave, the bell when the book turns up (2.2 s in, see home.css).
+  useEffect(() => {
+    if (ready) sfx.reveal(flyers, ARRIVES_AFTER);
+  }, [ready, flyers]);
   useEffect(() => {
     if (ready) closeRef.current?.focus();
   }, [ready, round]);
