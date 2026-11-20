@@ -84,6 +84,8 @@ export interface Room {
   picks?: Hotspot;
   /** The armillary sphere: opens the globe ("Literary journey"). */
   globe?: Hotspot;
+  /** The hourglass: opens the reader's loans and when each is due. */
+  hourglass?: Hotspot;
   /** The names are painted in the picture (signs, the open book): the text labels stay invisible (screen readers only). */
   signs?: boolean;
 }
@@ -153,6 +155,8 @@ const UPSTAIRS: Room = {
   ],
   // the armillary sphere at the back of the room: the globe of the literary journey
   globe: { id: "armillary-globe", rotate: 0, skewY: 0, ...traced([[715, 490], [719, 495], [719, 500], [727, 502], [736, 507], [744, 507], [744, 511], [738, 516], [737, 524], [738, 531], [733, 536], [726, 541], [721, 546], [729, 556], [727, 560], [707, 560], [703, 556], [710, 547], [706, 543], [700, 538], [695, 532], [689, 531], [688, 527], [696, 520], [699, 510], [705, 504], [712, 500], [712, 495]], UPSTAIRS_PX) },
+  // the hourglass on the desk beside the lamp: time running out, so it shows the loans and their due dates
+  hourglass: { id: "hourglass", rotate: 0, skewY: 0, ...traced([[1051, 602], [1087, 602], [1088, 608], [1084, 610], [1084, 650], [1086, 660], [1082, 666], [1055, 667], [1051, 660], [1055, 650], [1055, 610], [1051, 607]], UPSTAIRS_PX) },
   portals: [
     // the steps that go down through the round stairwell in the floor: the way back down (clickable along the outline drawn by hand on the 1672x941 picture)
     { id: "staircase-down", to: "library", label: "Descer ao andar de baixo", glow: true, rotate: 0, skewY: 0, ...traced([

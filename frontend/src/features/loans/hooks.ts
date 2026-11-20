@@ -27,8 +27,9 @@ function invalidateAfterLoanChange(queryClient: QueryClient) {
   ]);
 }
 
-export function useLoans(params: LoanListParams) {
+export function useLoans(params: LoanListParams, options: { enabled?: boolean } = {}) {
   return useQuery({
+    enabled: options.enabled ?? true,
     queryKey: loanKeys.list(params),
     queryFn: ({ signal }) => listLoans(params, signal),
     placeholderData: keepPreviousData,

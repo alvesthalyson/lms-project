@@ -145,3 +145,16 @@ describe("sound engine", () => {
     vi.restoreAllMocks();
   });
 });
+
+describe("hourglass sound", () => {
+  it("taps the glass and trickles sand when on, and is silent when off", async () => {
+    vi.stubGlobal("AudioContext", FakeAudioContext);
+    const sfx = await freshEngine();
+    sfx.sand();
+    expect(made.contexts).toBe(0);
+    sfx.setSoundEnabled(true);
+    sfx.sand();
+    expect(made.oscillators).toBe(2);
+    expect(made.sources).toBe(5);
+  });
+});

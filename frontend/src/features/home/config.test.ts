@@ -5,7 +5,7 @@ import { categoryKey, HOME_ROOMS, placeCategories, shapePoints, ROOM_ORDER, type
 function everyHotspot(): Array<[string, Hotspot]> {
   return ROOM_ORDER.flatMap((id) => {
     const room = HOME_ROOMS[id];
-    return [...room.shelves, ...room.portals, ...(room.picks ? [room.picks] : []), ...(room.globe ? [room.globe] : [])].map((h): [string, Hotspot] => [id, h]);
+    return [...room.shelves, ...room.portals, ...(room.picks ? [room.picks] : []), ...(room.globe ? [room.globe] : []), ...(room.hourglass ? [room.hourglass] : [])].map((h): [string, Hotspot] => [id, h]);
   });
 }
 
@@ -82,6 +82,13 @@ describe("the second floor", () => {
     const room = HOME_ROOMS.upstairs;
     expect(room.backgroundDark).toBe("/sala-2-noite.jpg");
     expect(room.backgroundDarkByLang).toEqual({ en: "/sala-2-noite-en.jpg", ja: "/sala-2-noite-ja.jpg" });
+  });
+
+  it("has the hourglass upstairs, outlined along its own shape", () => {
+    const hourglass = HOME_ROOMS.upstairs.hourglass!;
+    expect(hourglass.shape!.length).toBeGreaterThan(8);
+    expect(hourglass.height).toBeGreaterThan(hourglass.width); // taller than wide, like the real one
+    expect(HOME_ROOMS.library.hourglass).toBeUndefined();
   });
 
   it("has the armillary sphere as the globe, outlined along its own shape", () => {

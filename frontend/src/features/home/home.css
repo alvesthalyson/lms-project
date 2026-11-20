@@ -443,3 +443,24 @@
 :root[data-theme="light"] .gl-zoom-btn { color: #5a2d0e; background: rgba(250, 243, 226, 0.9); border-color: rgba(122, 79, 26, 0.7); }
 
 .hm-sound { min-width: 0; padding-inline: 0.8em; }
+
+/* ───────── The hourglass (the reader's loans) ───────── */
+.hg-panel { width: min(560px, 100%); }
+.hg-body { flex: 1; min-width: 0; min-height: 0; position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; padding: 22px 22px 18px; overflow-y: auto; color: #f3e3c3; text-align: center; }
+.hg-body h2 { margin: 2px 0 4px; font: 600 clamp(1.4rem, 3.4vw, 1.9rem) / 1.1 Georgia, serif; color: #ffe8b0; }
+.hg-heading { margin: 10px 0 4px; font: 600 0.8rem Georgia, serif; letter-spacing: 0.12em; text-transform: uppercase; color: #e9c06a; }
+.hg-heading--late { color: #ff9d8a; }
+.hg-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; text-align: left; }
+.hg-row { display: grid; grid-template-columns: 1fr auto; gap: 0 12px; padding: 9px 12px; border-radius: 10px; background: rgba(255, 233, 180, 0.08); border: 1px solid rgba(233, 192, 106, 0.28); }
+.hg-row--late { background: rgba(190, 60, 40, 0.18); border-color: rgba(255, 140, 120, 0.5); }
+.hg-book { font: 600 0.98rem Georgia, serif; color: #ffe8b0; }
+.hg-when { font-size: 0.86rem; color: #f3e3c3; text-align: right; }
+.hg-date { grid-column: 1; font-size: 0.78rem; opacity: 0.75; }
+.hg-row--late .hg-when { color: #ffb4a4; font-weight: 600; }
+.hg-all { align-self: center; margin-top: 8px; }
+:root[data-theme="light"] .hg-body { color: #3b2410; }
+:root[data-theme="light"] .hg-body h2, :root[data-theme="light"] .hg-book { color: #5a2d0e; }
+:root[data-theme="light"] .hg-when { color: #3b2410; }
+:root[data-theme="light"] .hg-row { background: rgba(120, 70, 20, 0.08); border-color: rgba(120, 70, 20, 0.3); }
+:root[data-theme="light"] .hg-row--late { background: rgba(190, 60, 40, 0.12); }
+:root[data-theme="light"] .hg-row--late .hg-when { color: #a02a14; }

@@ -268,3 +268,13 @@ export function restoreSoundEnabled(): void {
   enabled = true;
   unlockOnNextGesture();
 }
+
+/** The hourglass: a soft glass tap and a trickle of falling sand. */
+export function sand(): void {
+  const c = context();
+  if (!c) return;
+  const t = c.currentTime;
+  tone(c, t, 1320, 0.18, 0.05);
+  tone(c, t + 0.01, 1980, 0.12, 0.03);
+  for (let i = 0; i < 5; i++) noiseBurst(c, t + 0.1 + i * 0.07, 0.09, "highpass", 5200, 4200, 0.7, 0.03);
+}

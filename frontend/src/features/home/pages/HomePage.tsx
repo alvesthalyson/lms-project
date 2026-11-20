@@ -10,6 +10,7 @@ import { usePrefs } from "@/lib/i18n/store";
 import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
+import { HourglassDialog } from "../components/HourglassDialog";
 import { GlobeDialog } from "../globe/GlobeDialog";
 import { AccountBar } from "../components/AccountBar";
 import { PicksReveal, type RevealOrigin } from "../components/PicksReveal";
@@ -79,6 +80,8 @@ export function HomePage() {
   const closeReveal = useCallback(() => setReveal(null), []);
   const [globeOpen, setGlobeOpen] = useState(false);
   const closeGlobe = useCallback(() => setGlobeOpen(false), []);
+  const [hourglassOpen, setHourglassOpen] = useState(false);
+  const closeHourglass = useCallback(() => setHourglassOpen(false), []);
   // A country was chosen on the globe: close it and open the shelf with that country's books.
   const pickCountry = useCallback(
     (code: string, name: string) => {
@@ -116,6 +119,10 @@ export function HomePage() {
     sfx.globeOpen();
     setGlobeOpen(true);
   };
+  const openHourglass = (): void => {
+    sfx.sand();
+    setHourglassOpen(true);
+  };
   const goTo = (to: RoomId): void => {
     sfx.stairs();
     setRoomId(to);
@@ -147,6 +154,10 @@ export function HomePage() {
 
         {room.globe && (
           <SpotButton spot={room.globe} className={shelfClass} onClick={openGlobe} ariaLabel={t("globe.open")} haspopup />
+        )}
+
+        {room.hourglass && (
+          <SpotButton spot={room.hourglass} className={shelfClass} onClick={openHourglass} ariaLabel={t("hourglass.open")} haspopup />
         )}
 
         {room.portals.map((portal) => (
@@ -191,6 +202,11 @@ export function HomePage() {
             🌍 {t("globe.open")}
           </button>
         )}
+        {room.hourglass && (
+          <button type="button" className="hm-pill" onClick={openHourglass} aria-haspopup="dialog">
+            ⏳ {t("hourglass.title")}
+          </button>
+        )}
         {room.portals.map((portal) => (
           <button key={portal.id} type="button" className="hm-pill hm-pill--portal" onClick={() => goTo(portal.to)}>
             {portalLabel(portal.to)}
@@ -205,6 +221,7 @@ export function HomePage() {
 
       {reveal && <PicksReveal origin={reveal} onClose={closeReveal} />}
       {open && <ShelfInspector target={open} onClose={close} />}
+      {hourglassOpen && <HourglassDialog onClose={closeHourglass} />}
       {globeOpen && <GlobeDialog onClose={closeGlobe} onPick={pickCountry} />}
       {/* The Home lives outside AppLayout, so it brings its own toasts (reservation results, errors). */}
       <Toaster />

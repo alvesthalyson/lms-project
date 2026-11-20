@@ -9,6 +9,8 @@ import { AuthContext, type AuthContextValue } from "@/features/auth/AuthContext"
 import type { Role, User } from "@/features/auth/types";
 import { listBooks, listCategories, listCountries } from "@/features/books/api";
 import type { Book, Category } from "@/features/books/types";
+import { listLoans } from "@/features/loans/api";
+import type { Loan } from "@/features/loans/types";
 import { createReservation } from "@/features/reservations/api";
 import { usePrefs } from "@/lib/i18n/store";
 
@@ -17,6 +19,7 @@ import { HomePage } from "./HomePage";
 // Only the HTTP layer is mocked: the shelves, the dialog, the account bar and the reserve button run for real.
 vi.mock("@/features/books/api");
 vi.mock("@/features/reservations/api");
+vi.mock("@/features/loans/api");
 
 const POETRY: Category = { id: 3, name: "Poesia", slug: "poesia" };
 
@@ -271,5 +274,81 @@ describe("HomePage: sound", () => {
     await user.click(screen.getByRole("button", { name: "Desligar o som" }));
     expect(usePrefs.getState().sound).toBe(false);
     expect(window.localStorage.getItem("lms.sound")).toBe("off");
+  });
+});
+
+describe("HomePage: the hourglass", () => {
+  function loan(id: number, title: string, due: string, status: Loan["status"], overdueDays = 0): Loan {
+    return {
+      id,
+      member: { id: 1, email: "ana@example.com", full_name: "Ana Silva", member_number: "M-000001" },
+      copy: { id, barcode: `B${id}` },
+      book: { id: id + 100, title, isbn: "9788535914054", cover_image: null },
+      loaned_at: "2026-11-01T00:00:00Z",
+      due_date: due,
+      returned_at: null,
+      status,
+      days_overdue: overdueDays,
+      renewal_count: 0,
+    };
+  }
+  function isoIn(days: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  beforeEach(() => {
+    vi.mocked(listBooks).mockResolvedValue(pageOf<Book>([]));
+    vi.mocked(listCategories).mockResolvedValue(pageOf<Category>([POETRY]));
+    vi.mocked(listCountries).mockResolvedValue([]);
+  });
+
+  async function upstairs() {
+    const user = userEvent.setup();
+    await user.click((await screen.findAllByRole("button", { name: "Subir ao segundo andar" }))[0]!);
+    return user;
+  }
+
+  it("shows a signed-in reader's loans, the late ones first, with the days left", async () => {
+    vi.mocked(listLoans).mockImplementation(async (params) =>
+      pageOf(
+        params.status === "overdue"
+          ? [loan(1, "Dom Casmurro", isoIn(-3), "overdue", 3)]
+          : [loan(2, "Vidas Secas", isoIn(1), "active"), loan(3, "A Hora da Estrela", isoIn(9), "active")],
+      ),
+    );
+    renderHome("MEMBER");
+    const user = await upstairs();
+    await user.click((await screen.findAllByRole("button", { name: "Abrir a ampulheta: meus empréstimos" }))[0]!);
+
+    const dialog = await screen.findByRole("dialog", { name: "Seus empréstimos" });
+    expect(await within(dialog).findByText("Dom Casmurro")).toBeInTheDocument();
+    expect(within(dialog).getByText("3 dias de atraso")).toBeInTheDocument();
+    expect(within(dialog).getByText("Vence amanhã")).toBeInTheDocument();
+    expect(within(dialog).getByText("Vence em 9 dias")).toBeInTheDocument();
+    const titles = within(dialog).getAllByRole("listitem").map((li) => li.querySelector(".hg-book")?.textContent);
+    expect(titles).toEqual(["Dom Casmurro", "Vidas Secas", "A Hora da Estrela"]);
+    expect(listLoans).toHaveBeenCalledWith(expect.objectContaining({ member: 1, status: "overdue" }), expect.anything());
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("says so when the reader has nothing on loan", async () => {
+    vi.mocked(listLoans).mockResolvedValue(pageOf<Loan>([]));
+    renderHome("MEMBER");
+    const user = await upstairs();
+    await user.click((await screen.findAllByRole("button", { name: "Abrir a ampulheta: meus empréstimos" }))[0]!);
+    expect(await screen.findByText("Você não tem livros emprestados. A ampulheta está livre.")).toBeInTheDocument();
+  });
+
+  it("asks a visitor to sign in, without calling the loans API", async () => {
+    renderHome();
+    const user = await upstairs();
+    await user.click((await screen.findAllByRole("button", { name: "Abrir a ampulheta: meus empréstimos" }))[0]!);
+    const dialog = await screen.findByRole("dialog", { name: "Seus empréstimos" });
+    expect(within(dialog).getByRole("link", { name: "Entrar" })).toHaveAttribute("href", "/login");
+    expect(listLoans).not.toHaveBeenCalled();
   });
 });
