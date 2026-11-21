@@ -2,11 +2,13 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties, type Mou
 import { Link } from "react-router-dom";
 
 import { Toaster } from "@/components/Toaster";
+import { useAuth } from "@/features/auth/hooks";
 import { useCategories } from "@/features/books/hooks";
 import type { Category } from "@/features/books/types";
 import { FilmGrain } from "@/features/library/components/FilmGrain";
 import "@/features/library/library.css";
 import { usePrefs } from "@/lib/i18n/store";
+import { toast } from "@/lib/toast";
 import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
@@ -76,6 +78,7 @@ export function HomePage() {
   const [open, setOpen] = useState<InspectorTarget | null>(null);
   const close = useCallback(() => setOpen(null), []);
   const { t, catName, lang } = useT();
+  const { user } = useAuth();
   const [reveal, setReveal] = useState<RevealOrigin | null>(null);
   const closeReveal = useCallback(() => setReveal(null), []);
   const [globeOpen, setGlobeOpen] = useState(false);
@@ -119,6 +122,15 @@ export function HomePage() {
     sfx.globeOpen();
     setGlobeOpen(true);
   };
+  // The reader's favourites: the shelf inspector with the wish-list filter. A visitor has none, so they are told to sign in.
+  const openFavorites = (): void => {
+    if (!user) {
+      toast.info(t("favorites.signIn"));
+      return;
+    }
+    sfx.openShelf();
+    setOpen({ title: t("favorites.title"), kicker: t("favorites.kicker"), query: { favorite: true, page_size: 50, ordering: "title" } });
+  };
   const openHourglass = (): void => {
     sfx.sand();
     setHourglassOpen(true);
@@ -154,6 +166,10 @@ export function HomePage() {
 
         {room.globe && (
           <SpotButton spot={room.globe} className={shelfClass} onClick={openGlobe} ariaLabel={t("globe.open")} haspopup />
+        )}
+
+        {room.favorites && (
+          <SpotButton spot={room.favorites} className={shelfClass} onClick={openFavorites} ariaLabel={t("favorites.open")} haspopup />
         )}
 
         {room.hourglass && (
@@ -200,6 +216,11 @@ export function HomePage() {
         {room.globe && (
           <button type="button" className="hm-pill" onClick={openGlobe} aria-haspopup="dialog">
             🌍 {t("globe.open")}
+          </button>
+        )}
+        {room.favorites && (
+          <button type="button" className="hm-pill" onClick={openFavorites} aria-haspopup="dialog">
+            ⭐ {t("favorites.title")}
           </button>
         )}
         {room.hourglass && (

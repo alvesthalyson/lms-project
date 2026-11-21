@@ -5,7 +5,7 @@ import { categoryKey, HOME_ROOMS, placeCategories, shapePoints, ROOM_ORDER, type
 function everyHotspot(): Array<[string, Hotspot]> {
   return ROOM_ORDER.flatMap((id) => {
     const room = HOME_ROOMS[id];
-    return [...room.shelves, ...room.portals, ...(room.picks ? [room.picks] : []), ...(room.globe ? [room.globe] : []), ...(room.hourglass ? [room.hourglass] : [])].map((h): [string, Hotspot] => [id, h]);
+    return [...room.shelves, ...room.portals, ...(room.picks ? [room.picks] : []), ...(room.globe ? [room.globe] : []), ...(room.hourglass ? [room.hourglass] : []), ...(room.favorites ? [room.favorites] : [])].map((h): [string, Hotspot] => [id, h]);
   });
 }
 
@@ -82,6 +82,15 @@ describe("the second floor", () => {
     const room = HOME_ROOMS.upstairs;
     expect(room.backgroundDark).toBe("/sala-2-noite.jpg");
     expect(room.backgroundDarkByLang).toEqual({ en: "/sala-2-noite-en.jpg", ja: "/sala-2-noite-ja.jpg" });
+  });
+
+  it("has the open book of favourites upstairs, wider than tall and clear of the hourglass", () => {
+    const book = HOME_ROOMS.upstairs.favorites!;
+    const glass = HOME_ROOMS.upstairs.hourglass!;
+    expect(book.shape!.length).toBeGreaterThan(8);
+    expect(book.width).toBeGreaterThan(book.height);
+    expect(book.left).toBeGreaterThan(glass.left + glass.width);
+    expect(HOME_ROOMS.library.favorites).toBeUndefined();
   });
 
   it("has the hourglass upstairs, outlined along its own shape", () => {

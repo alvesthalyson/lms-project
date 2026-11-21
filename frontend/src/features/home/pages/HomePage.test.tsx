@@ -352,3 +352,29 @@ describe("HomePage: the hourglass", () => {
     expect(listLoans).not.toHaveBeenCalled();
   });
 });
+
+describe("HomePage: the book of favourites", () => {
+  async function upstairs() {
+    const user = userEvent.setup();
+    await user.click((await screen.findAllByRole("button", { name: "Subir ao segundo andar" }))[0]!);
+    return user;
+  }
+
+  it("opens the reader's wish list as a shelf", async () => {
+    renderHome("MEMBER");
+    const user = await upstairs();
+    await user.click((await screen.findAllByRole("button", { name: "Abrir o livro dos favoritos" }))[0]!);
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("heading", { name: "Meus favoritos" })).toBeInTheDocument();
+    await waitFor(() => expect(listBooks).toHaveBeenCalledWith(expect.objectContaining({ favorite: true }), expect.anything()));
+  });
+
+  it("tells a visitor to sign in instead of opening an empty shelf", async () => {
+    renderHome();
+    const user = await upstairs();
+    await user.click((await screen.findAllByRole("button", { name: "Abrir o livro dos favoritos" }))[0]!);
+    expect(await screen.findByText("Entre na sua conta para ver seus livros favoritos.")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(listBooks).not.toHaveBeenCalledWith(expect.objectContaining({ favorite: true }), expect.anything());
+  });
+});
