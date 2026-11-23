@@ -136,7 +136,7 @@ export function HomePage() {
     setOpen({ title: t("favorites.title"), kicker: t("favorites.kicker"), query: { favorite: true, page_size: 50, ordering: "title" } });
   };
   const openTree = (): void => {
-    sfx.bloom(landingTimes(categories.length));
+    sfx.bloom(landingTimes(categories.map((category) => catName(category))));
     setTreeOpen(true);
   };
   const pickFromTree = (category: Category): void => {
