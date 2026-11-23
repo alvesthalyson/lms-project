@@ -379,26 +379,40 @@ describe("HomePage: the book of favourites", () => {
   });
 });
 
-describe("HomePage: the glass rose", () => {
-  it("opens a rose with a petal per category, and a petal opens that shelf", async () => {
+describe("HomePage: the glass tree", () => {
+  async function upstairs() {
     const user = userEvent.setup();
+    await user.click((await screen.findAllByRole("button", { name: "Subir ao segundo andar" }))[0]!);
+    return user;
+  }
+
+  it("is in the second-floor window and not on the ground floor", async () => {
     renderHome();
-    await user.click((await screen.findAllByRole("button", { name: "Abrir a rosa de vidro: categorias" }))[0]!);
+    await screen.findAllByRole("button", { name: "Subir ao segundo andar" });
+    expect(screen.queryByRole("button", { name: "Abrir a árvore de vidro: categorias" })).not.toBeInTheDocument();
+    await upstairs();
+    expect((await screen.findAllByRole("button", { name: "Abrir a árvore de vidro: categorias" })).length).toBeGreaterThan(0);
+  });
 
-    const rose = await screen.findByRole("dialog", { name: "A rosa das categorias" });
-    await user.click(within(rose).getByRole("button", { name: "Poesia" }));
+  it("opens a tree with a leaf per category, and a leaf opens that shelf", async () => {
+    renderHome();
+    const user = await upstairs();
+    await user.click((await screen.findAllByRole("button", { name: "Abrir a árvore de vidro: categorias" }))[0]!);
 
-    expect(screen.queryByRole("dialog", { name: "A rosa das categorias" })).not.toBeInTheDocument();
+    const tree = await screen.findByRole("dialog", { name: "A árvore das categorias" });
+    await user.click(within(tree).getByRole("button", { name: "Poesia" }));
+
+    expect(screen.queryByRole("dialog", { name: "A árvore das categorias" })).not.toBeInTheDocument();
     const shelf = await screen.findByRole("dialog");
     expect(within(shelf).getByRole("heading", { name: "Poesia" })).toBeInTheDocument();
     await waitFor(() => expect(listBooks).toHaveBeenCalledWith(expect.objectContaining({ category: POETRY.id }), expect.anything()));
   });
 
   it("closes with Esc", async () => {
-    const user = userEvent.setup();
     renderHome();
-    await user.click((await screen.findAllByRole("button", { name: "Abrir a rosa de vidro: categorias" }))[0]!);
-    await screen.findByRole("dialog", { name: "A rosa das categorias" });
+    const user = await upstairs();
+    await user.click((await screen.findAllByRole("button", { name: "Abrir a árvore de vidro: categorias" }))[0]!);
+    await screen.findByRole("dialog", { name: "A árvore das categorias" });
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });

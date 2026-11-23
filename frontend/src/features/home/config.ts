@@ -86,8 +86,8 @@ export interface Room {
   globe?: Hotspot;
   /** The hourglass: opens the reader's loans and when each is due. */
   hourglass?: Hotspot;
-  /** The stained-glass rosette at the back: opens the rose of categories. */
-  rose?: Hotspot;
+  /** The stained-glass tree at the back: opens the tree of categories. */
+  tree?: Hotspot;
   /** The great open book on the desk: the reader's favourites (wish list). */
   favorites?: Hotspot;
   /** The names are painted in the picture (signs, the open book): the text labels stay invisible (screen readers only). */
@@ -115,8 +115,6 @@ const LIBRARY: Room = {
     { id: "sign-filosofia", category: "filosofia", rotate: 0, skewY: 0, ...traced([[714, 420], [819, 426], [820, 449], [716, 449]]) },
     { id: "sign-romance", category: "romance", rotate: 0, skewY: 0, ...traced([[1597, 601], [1707, 608], [1708, 651], [1593, 637]]) },
   ],
-  // the great stained-glass rosette at the back of the hall: a rose of glass, one petal per category
-  rose: { id: "rose-window", rotate: 0, skewY: 0, ...traced([[1108, 307], [1106, 322], [1100, 336], [1091, 348], [1079, 357], [1065, 363], [1050, 365], [1035, 363], [1021, 357], [1009, 348], [1000, 336], [994, 322], [992, 307], [994, 292], [1000, 278], [1009, 266], [1021, 257], [1035, 251], [1050, 249], [1065, 251], [1079, 257], [1091, 266], [1100, 278], [1106, 292]]) },
   portals: [
     // the spiral staircase, clickable along its own outline (it follows the two handrails that go down and the steps, ignoring the lamp posts): no text, just a golden glow
     { id: "spiral-staircase", to: "upstairs", label: "Subir ao segundo andar", glow: true, rotate: 0, skewY: 0, ...traced([
@@ -165,6 +163,8 @@ const UPSTAIRS: Room = {
   hourglass: { id: "hourglass", rotate: 0, skewY: 0, ...traced([[1051, 602], [1087, 602], [1088, 608], [1084, 610], [1084, 650], [1086, 660], [1082, 666], [1055, 667], [1051, 660], [1055, 650], [1055, 610], [1051, 607]], UPSTAIRS_PX) },
   // the open book of constellations on the desk: the reader's own favourites, spread open
   favorites: { id: "favorites-book", rotate: 0, skewY: 0, ...traced([[1080, 728], [1105, 708], [1147, 680], [1180, 665], [1203, 663], [1263, 668], [1287, 665], [1370, 670], [1387, 675], [1403, 692], [1390, 703], [1357, 750], [1348, 755], [1300, 745], [1223, 739], [1193, 736], [1137, 730], [1083, 732]], UPSTAIRS_PX) },
+  // the round stained-glass window with the tree of life at the back of the hall: a tree of glass, a leaf for each category
+  tree: { id: "tree-window", rotate: 0, skewY: 0, ...traced([[800, 240], [797, 261], [789, 281], [776, 298], [759, 311], [739, 319], [718, 322], [697, 319], [677, 311], [660, 298], [647, 281], [639, 261], [636, 240], [639, 219], [647, 199], [660, 182], [677, 169], [697, 161], [718, 158], [739, 161], [759, 169], [776, 182], [789, 199], [797, 219]], UPSTAIRS_PX) },
   portals: [
     // the steps that go down through the round stairwell in the floor: the way back down (clickable along the outline drawn by hand on the 1672x941 picture)
     { id: "staircase-down", to: "library", label: "Descer ao andar de baixo", glow: true, rotate: 0, skewY: 0, ...traced([
