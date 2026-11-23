@@ -5,7 +5,7 @@ import { categoryKey, HOME_ROOMS, placeCategories, shapePoints, ROOM_ORDER, type
 function everyHotspot(): Array<[string, Hotspot]> {
   return ROOM_ORDER.flatMap((id) => {
     const room = HOME_ROOMS[id];
-    return [...room.shelves, ...room.portals, ...(room.picks ? [room.picks] : []), ...(room.globe ? [room.globe] : []), ...(room.hourglass ? [room.hourglass] : []), ...(room.favorites ? [room.favorites] : [])].map((h): [string, Hotspot] => [id, h]);
+    return [...room.shelves, ...room.portals, ...(room.picks ? [room.picks] : []), ...(room.globe ? [room.globe] : []), ...(room.hourglass ? [room.hourglass] : []), ...(room.favorites ? [room.favorites] : []), ...(room.rose ? [room.rose] : [])].map((h): [string, Hotspot] => [id, h]);
   });
 }
 
@@ -82,6 +82,15 @@ describe("the second floor", () => {
     const room = HOME_ROOMS.upstairs;
     expect(room.backgroundDark).toBe("/sala-2-noite.jpg");
     expect(room.backgroundDarkByLang).toEqual({ en: "/sala-2-noite-en.jpg", ja: "/sala-2-noite-ja.jpg" });
+  });
+
+  it("has the stained-glass rose in the hall, round and in the middle of the picture", () => {
+    const rose = HOME_ROOMS.library.rose!;
+    expect(rose.shape!.length).toBeGreaterThanOrEqual(16);
+    expect(Math.abs(rose.width * 1850 - rose.height * 850)).toBeLessThan(6); // a circle on the 1850x850 picture
+    expect(rose.left + rose.width / 2).toBeGreaterThan(0.5);
+    expect(rose.left + rose.width / 2).toBeLessThan(0.62);
+    expect(HOME_ROOMS.upstairs.rose).toBeUndefined();
   });
 
   it("has the open book of favourites upstairs, wider than tall and clear of the hourglass", () => {

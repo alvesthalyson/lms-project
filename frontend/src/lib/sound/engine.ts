@@ -278,3 +278,16 @@ export function sand(): void {
   tone(c, t + 0.01, 1980, 0.12, 0.03);
   for (let i = 0; i < 5; i++) noiseBurst(c, t + 0.1 + i * 0.07, 0.09, "highpass", 5200, 4200, 0.7, 0.03);
 }
+
+/** The rose opens: a run of glass notes climbing a pentatonic scale, one per petal. */
+export function bloom(petals: number): void {
+  const c = context();
+  if (!c) return;
+  const scale = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
+  const t = c.currentTime;
+  const n = Math.min(Math.max(petals, 0), 12);
+  for (let i = 0; i < n; i++) {
+    const octave = Math.floor(i / scale.length) + 1;
+    tone(c, t + 0.05 + i * 0.07, scale[i % scale.length]! * octave, 0.9, 0.05);
+  }
+}

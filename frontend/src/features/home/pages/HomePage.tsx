@@ -12,6 +12,7 @@ import { toast } from "@/lib/toast";
 import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
+import { RoseWindow } from "../components/RoseWindow";
 import { HourglassDialog } from "../components/HourglassDialog";
 import { GlobeDialog } from "../globe/GlobeDialog";
 import { AccountBar } from "../components/AccountBar";
@@ -83,6 +84,8 @@ export function HomePage() {
   const closeReveal = useCallback(() => setReveal(null), []);
   const [globeOpen, setGlobeOpen] = useState(false);
   const closeGlobe = useCallback(() => setGlobeOpen(false), []);
+  const [roseOpen, setRoseOpen] = useState(false);
+  const closeRose = useCallback(() => setRoseOpen(false), []);
   const [hourglassOpen, setHourglassOpen] = useState(false);
   const closeHourglass = useCallback(() => setHourglassOpen(false), []);
   // A country was chosen on the globe: close it and open the shelf with that country's books.
@@ -131,6 +134,14 @@ export function HomePage() {
     sfx.openShelf();
     setOpen({ title: t("favorites.title"), kicker: t("favorites.kicker"), query: { favorite: true, page_size: 50, ordering: "title" } });
   };
+  const openRose = (): void => {
+    sfx.bloom(categories.length);
+    setRoseOpen(true);
+  };
+  const pickFromRose = (category: Category): void => {
+    setRoseOpen(false);
+    openCategory(category);
+  };
   const openHourglass = (): void => {
     sfx.sand();
     setHourglassOpen(true);
@@ -167,6 +178,8 @@ export function HomePage() {
         {room.globe && (
           <SpotButton spot={room.globe} className={shelfClass} onClick={openGlobe} ariaLabel={t("globe.open")} haspopup />
         )}
+
+        {room.rose && <SpotButton spot={room.rose} className={shelfClass} onClick={openRose} ariaLabel={t("rose.open")} haspopup />}
 
         {room.favorites && (
           <SpotButton spot={room.favorites} className={shelfClass} onClick={openFavorites} ariaLabel={t("favorites.open")} haspopup />
@@ -218,6 +231,11 @@ export function HomePage() {
             🌍 {t("globe.open")}
           </button>
         )}
+        {room.rose && (
+          <button type="button" className="hm-pill" onClick={openRose} aria-haspopup="dialog">
+            🌸 {t("rose.title")}
+          </button>
+        )}
         {room.favorites && (
           <button type="button" className="hm-pill" onClick={openFavorites} aria-haspopup="dialog">
             ⭐ {t("favorites.title")}
@@ -242,6 +260,7 @@ export function HomePage() {
 
       {reveal && <PicksReveal origin={reveal} onClose={closeReveal} />}
       {open && <ShelfInspector target={open} onClose={close} />}
+      {roseOpen && <RoseWindow categories={categories} onPick={pickFromRose} onClose={closeRose} />}
       {hourglassOpen && <HourglassDialog onClose={closeHourglass} />}
       {globeOpen && <GlobeDialog onClose={closeGlobe} onPick={pickCountry} />}
       {/* The Home lives outside AppLayout, so it brings its own toasts (reservation results, errors). */}

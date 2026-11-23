@@ -378,3 +378,28 @@ describe("HomePage: the book of favourites", () => {
     expect(listBooks).not.toHaveBeenCalledWith(expect.objectContaining({ favorite: true }), expect.anything());
   });
 });
+
+describe("HomePage: the glass rose", () => {
+  it("opens a rose with a petal per category, and a petal opens that shelf", async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await user.click((await screen.findAllByRole("button", { name: "Abrir a rosa de vidro: categorias" }))[0]!);
+
+    const rose = await screen.findByRole("dialog", { name: "A rosa das categorias" });
+    await user.click(within(rose).getByRole("button", { name: "Poesia" }));
+
+    expect(screen.queryByRole("dialog", { name: "A rosa das categorias" })).not.toBeInTheDocument();
+    const shelf = await screen.findByRole("dialog");
+    expect(within(shelf).getByRole("heading", { name: "Poesia" })).toBeInTheDocument();
+    await waitFor(() => expect(listBooks).toHaveBeenCalledWith(expect.objectContaining({ category: POETRY.id }), expect.anything()));
+  });
+
+  it("closes with Esc", async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await user.click((await screen.findAllByRole("button", { name: "Abrir a rosa de vidro: categorias" }))[0]!);
+    await screen.findByRole("dialog", { name: "A rosa das categorias" });
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});

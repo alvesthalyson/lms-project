@@ -464,3 +464,22 @@
 :root[data-theme="light"] .hg-row { background: rgba(120, 70, 20, 0.08); border-color: rgba(120, 70, 20, 0.3); }
 :root[data-theme="light"] .hg-row--late { background: rgba(190, 60, 40, 0.12); }
 :root[data-theme="light"] .hg-row--late .hg-when { color: #a02a14; }
+
+/* ───────── The glass rose (categories) ───────── */
+.rs-backdrop { background: radial-gradient(circle at 50% 45%, rgba(255, 224, 150, 0.22), rgba(0, 0, 0, 0.7) 70%); }
+.rs-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; max-height: 100%; width: min(620px, 100%); color: #f3e3c3; text-align: center; animation: hm-fade 0.3s ease both; }
+.rs-head h2 { margin: 2px 0 4px; font: 600 clamp(1.3rem, 3.2vw, 1.8rem) / 1.1 Georgia, serif; color: #ffe8b0; }
+.rs-svg { width: min(78vh, 100%); max-height: 72vh; filter: drop-shadow(0 0 28px rgba(255, 200, 110, 0.45)); }
+.rs-frame { fill: #3a2410; stroke: #6b4420; stroke-width: 6; }
+.rs-pane { fill: #fff3cf; fill-opacity: 0.18; }
+.rs-bloom { cursor: pointer; transform-origin: 0 0; animation: rs-open 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; outline: none; }
+.rs-petal { stroke: #2b1a0c; stroke-width: 4; stroke-linejoin: round; fill-opacity: 0.9; transition: fill-opacity 0.2s, filter 0.2s; }
+.rs-glint { pointer-events: none; }
+.rs-bloom:hover .rs-petal, .rs-bloom:focus-visible .rs-petal { fill-opacity: 1; filter: brightness(1.25) drop-shadow(0 0 8px rgba(255, 230, 160, 0.9)); }
+.rs-bloom:focus-visible .rs-petal { stroke: #fff2c0; stroke-width: 5; }
+.rs-label { fill: #fff8e4; font-family: Georgia, serif; font-weight: 700; paint-order: stroke; stroke: rgba(30, 16, 4, 0.75); stroke-width: 3px; pointer-events: none; user-select: none; }
+.rs-heart { fill: #3a2410; stroke: #e9c06a; stroke-width: 4; }
+.rs-tree { font-size: 34px; pointer-events: none; }
+@keyframes rs-open { from { transform: scale(0.05) rotate(-40deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .rs-bloom, .rs-wrap { animation-duration: 0.01s; animation-delay: 0s !important; } }
+:root[data-theme="light"] .rs-wrap, :root[data-theme="light"] .rs-head h2 { color: #fff2d0; }
