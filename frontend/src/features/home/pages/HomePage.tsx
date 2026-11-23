@@ -13,6 +13,7 @@ import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
 import { RoseWindow } from "../components/RoseWindow";
+import { landingTimes } from "../components/roseGeometry";
 import { HourglassDialog } from "../components/HourglassDialog";
 import { GlobeDialog } from "../globe/GlobeDialog";
 import { AccountBar } from "../components/AccountBar";
@@ -135,7 +136,7 @@ export function HomePage() {
     setOpen({ title: t("favorites.title"), kicker: t("favorites.kicker"), query: { favorite: true, page_size: 50, ordering: "title" } });
   };
   const openRose = (): void => {
-    sfx.bloom(categories.length);
+    sfx.bloom(landingTimes(categories.length));
     setRoseOpen(true);
   };
   const pickFromRose = (category: Category): void => {

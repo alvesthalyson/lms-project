@@ -279,15 +279,18 @@ export function sand(): void {
   for (let i = 0; i < 5; i++) noiseBurst(c, t + 0.1 + i * 0.07, 0.09, "highpass", 5200, 4200, 0.7, 0.03);
 }
 
-/** The rose opens: a run of glass notes climbing a pentatonic scale, one per petal. */
-export function bloom(petals: number): void {
+/**
+ * The rose opens: a soft rustle of petals while they fly in, and one glass note as each labelled petal lands.
+ * `landings` are the moments, in seconds from now, at which the petals settle.
+ */
+export function bloom(landings: readonly number[]): void {
   const c = context();
   if (!c) return;
   const scale = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
   const t = c.currentTime;
-  const n = Math.min(Math.max(petals, 0), 12);
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < 6; i++) noiseBurst(c, t + 0.15 + i * 0.4, 0.5, "highpass", 3000, 1800, 0.7, 0.02);
+  landings.slice(0, 12).forEach((at, i) => {
     const octave = Math.floor(i / scale.length) + 1;
-    tone(c, t + 0.05 + i * 0.07, scale[i % scale.length]! * octave, 0.9, 0.05);
-  }
+    tone(c, t + at, scale[i % scale.length]! * octave, 1.1, 0.05);
+  });
 }

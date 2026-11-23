@@ -160,15 +160,16 @@ describe("hourglass sound", () => {
 });
 
 describe("rose sound", () => {
-  it("plays one glass note per petal (at most twelve), silent when off", async () => {
+  it("rustles, then plays one glass note per landing petal (at most twelve); silent when off", async () => {
     vi.stubGlobal("AudioContext", FakeAudioContext);
     const sfx = await freshEngine();
-    sfx.bloom(8);
+    sfx.bloom([3, 3.1, 3.2]);
     expect(made.contexts).toBe(0);
     sfx.setSoundEnabled(true);
-    sfx.bloom(8);
-    expect(made.oscillators).toBe(8);
-    sfx.bloom(30);
-    expect(made.oscillators).toBe(8 + 12);
+    sfx.bloom([3, 3.1, 3.2]);
+    expect(made.oscillators).toBe(3);
+    expect(made.sources).toBe(6); // the rustle
+    sfx.bloom(Array.from({ length: 30 }, (_, i) => 3 + i * 0.1));
+    expect(made.oscillators).toBe(3 + 12);
   });
 });
