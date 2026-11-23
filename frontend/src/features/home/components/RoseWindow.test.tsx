@@ -29,7 +29,7 @@ describe("RoseWindow", () => {
     expect(onPick).toHaveBeenLastCalledWith(CATS[2]);
   });
 
-  it("closes with Esc, the X button and a click outside and a click outside", async () => {
+  it("closes with Esc, the X button and a click outside", async () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
     const { container } = render(<RoseWindow categories={CATS} onPick={vi.fn()} onClose={onClose} />);

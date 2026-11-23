@@ -79,8 +79,6 @@ export interface Room {
   aspect: number;
   /** Bookcases. Categories from the API are assigned to them in order, across rooms. */
   shelves: readonly Hotspot[];
-  // the great stained-glass rosette at the back of the hall: a rose of glass, one petal per category
-  rose: { id: "rose-window", rotate: 0, skewY: 0, ...traced([[1108, 307], [1106, 322], [1100, 336], [1091, 348], [1079, 357], [1065, 363], [1050, 365], [1035, 363], [1021, 357], [1009, 348], [1000, 336], [994, 322], [992, 307], [994, 292], [1000, 278], [1009, 266], [1021, 257], [1035, 251], [1050, 249], [1065, 251], [1079, 257], [1091, 266], [1100, 278], [1106, 292]]) },
   portals: readonly Portal[];
   /** The "Indicação" book, if this room has one. */
   picks?: Hotspot;
@@ -117,6 +115,8 @@ const LIBRARY: Room = {
     { id: "sign-filosofia", category: "filosofia", rotate: 0, skewY: 0, ...traced([[714, 420], [819, 426], [820, 449], [716, 449]]) },
     { id: "sign-romance", category: "romance", rotate: 0, skewY: 0, ...traced([[1597, 601], [1707, 608], [1708, 651], [1593, 637]]) },
   ],
+  // the great stained-glass rosette at the back of the hall: a rose of glass, one petal per category
+  rose: { id: "rose-window", rotate: 0, skewY: 0, ...traced([[1108, 307], [1106, 322], [1100, 336], [1091, 348], [1079, 357], [1065, 363], [1050, 365], [1035, 363], [1021, 357], [1009, 348], [1000, 336], [994, 322], [992, 307], [994, 292], [1000, 278], [1009, 266], [1021, 257], [1035, 251], [1050, 249], [1065, 251], [1079, 257], [1091, 266], [1100, 278], [1106, 292]]) },
   portals: [
     // the spiral staircase, clickable along its own outline (it follows the two handrails that go down and the steps, ignoring the lamp posts): no text, just a golden glow
     { id: "spiral-staircase", to: "upstairs", label: "Subir ao segundo andar", glow: true, rotate: 0, skewY: 0, ...traced([
