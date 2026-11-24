@@ -86,7 +86,7 @@ export interface Room {
   globe?: Hotspot;
   /** The hourglass: opens the reader's loans and when each is due. */
   hourglass?: Hotspot;
-  /** The stained-glass tree at the back: opens the tree of categories. */
+  /** The stained-glass tree at the back: opens the oak of categories. */
   tree?: Hotspot;
   /** The great open book on the desk: the reader's favourites (wish list). */
   favorites?: Hotspot;

@@ -465,74 +465,60 @@
 :root[data-theme="light"] .hg-row--late { background: rgba(190, 60, 40, 0.12); }
 :root[data-theme="light"] .hg-row--late .hg-when { color: #a02a14; }
 
-/* ───────── The tree (categories) ───────── */
-.tw-backdrop { overflow: hidden; background: radial-gradient(circle at 50% 52%, rgba(120, 190, 255, 0.22), rgba(3, 6, 14, 0.84) 72%); }
-.tw-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; max-height: 100%; width: min(680px, 100%); color: #e4f1ff; text-align: center; animation: hm-fade 0.3s ease both; }
-.tw-head h2 { margin: 2px 0 4px; font: 600 clamp(1.3rem, 3.2vw, 1.8rem) / 1.1 Georgia, serif; color: #d6ecff; }
-.tw-svg { width: min(76vh, 100%); max-height: 72vh; overflow: visible; }
-.tw-aura { transform-origin: 0 0; animation: tw-aura 2.2s ease-out 0.1s both, tw-glow 7s ease-in-out 3.2s infinite alternate; }
+/* ───────── The tree (categories): the oak, with a beam of light per category ───────── */
+.tw-backdrop { overflow: hidden; background: radial-gradient(circle at 50% 50%, rgba(255, 214, 120, 0.16), rgba(2, 8, 4, 0.9) 72%); }
+.tw-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; max-height: 100%; width: min(680px, 100%); color: #f3ead0; text-align: center; animation: hm-fade 0.3s ease both; }
+.tw-head h2 { margin: 2px 0 6px; font: 600 clamp(1.3rem, 3.2vw, 1.8rem) / 1.1 Georgia, serif; color: #ffe9b8; }
+/* the picture is shown in an arch with a double gold-and-slate border and a warm glow */
+.tw-arch { width: min(560px, 100%, calc((100vh - 190px) * 0.6847)); aspect-ratio: 1038 / 1516; overflow: hidden; border-radius: 50% 50% 14px 14px / 34% 34% 14px 14px; box-shadow: 0 0 0 5px #2a3a2c, 0 0 0 8px #b98d3c, 0 0 60px rgba(255, 200, 110, 0.35); animation: bm-arch 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.tw-svg { display: block; width: 100%; height: 100%; }
+@keyframes bm-arch { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
 
-/* the window of glass, as in the picture: a slate frame with a gold edge and faint leading */
-.tw-window { transform-origin: 0 0; animation: tw-window 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.tw-frame { fill: none; stroke: #1d3347; stroke-width: 14; }
-.tw-rim { fill: none; stroke: #c9973a; stroke-width: 2.6; }
-.tw-rim-cells .tw-leaf { stroke-width: 1.1; filter: none; opacity: 0.9; }
-.tw-lead * { fill: none; stroke: #e3b04b; stroke-opacity: 0.22; stroke-width: 1; }
+/* the camera: the picture rises from the door, up the trunk, to the crown, then breathes */
+.bm-cam { transform-origin: 519px 758px; animation: bm-camera 6s cubic-bezier(0.25, 0.6, 0.2, 1) both, bm-breathe 14s ease-in-out 6s infinite alternate; }
+@keyframes bm-camera { from { transform: translateY(-130px) scale(1.2); } to { transform: translateY(0) scale(1); } }
+@keyframes bm-breathe { from { transform: scale(1); } to { transform: scale(1.018); } }
 
-/* the tree: dark teal wood with a gold edge; the trunk, limbs and roots are solid shapes that taper and are revealed
-   from the base as they grow, the thin twigs are lines that draw themselves */
-.tw-canopy { transform-origin: 0 124px; animation: tw-sway 8s ease-in-out 4.8s infinite alternate; }
-.tw-gold, .tw-wood { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.tw-gold { stroke: #d9a441; }
-.tw-wood { stroke: #1b4a5e; }
-.tw-edge { fill: none; stroke: #e0ad4a; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.tw-grain { fill: none; stroke: #e3b04b; stroke-opacity: 0.4; stroke-width: 1; stroke-linecap: round; }
-.tw-reveal { fill: none; stroke: #fff; stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: tw-reveal var(--t, 0.8s) cubic-bezier(0.45, 0.1, 0.25, 1) var(--d, 0s) both; }
-@keyframes tw-reveal { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-.tw-grow { stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: tw-grow var(--t, 0.8s) cubic-bezier(0.45, 0.1, 0.25, 1) var(--d, 0s) both; }
-@keyframes tw-grow { 0% { stroke-dashoffset: 1; opacity: 0; } 5% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 1; } }
+/* lit windows and the door: warm light that flickers like a candle */
+.bm-flicker { mix-blend-mode: screen; opacity: 0; animation: bm-flicker var(--t, 3s) ease-in-out var(--d, 0s) infinite alternate; }
+@keyframes bm-flicker { 0% { opacity: 0.35; } 35% { opacity: 0.9; } 60% { opacity: 0.55; } 100% { opacity: 1; } }
 
-/* glass leaves: gold leading, a faint midrib, a soft shadow on the window */
-.tw-leaf { stroke: #d9a441; stroke-width: 1.4; stroke-linejoin: round; filter: drop-shadow(0 1px 1.5px rgba(5, 20, 45, 0.55)); }
-.tw-core { fill: rgba(255, 255, 255, 0.5); pointer-events: none; }
-.tw-vein { fill: none; stroke: #e3b04b; stroke-opacity: 0.7; stroke-width: 0.9; stroke-linecap: round; pointer-events: none; }
+/* a beam: a shaft of light that opens from the crown downwards, with a faint shade behind it so that the name reads */
+.bm { cursor: pointer; outline: none; }
+.bm-open { transform-origin: 0 0; animation: bm-open var(--t, 1.3s) cubic-bezier(0.3, 0.1, 0.2, 1) var(--d, 0s) both; }
+@keyframes bm-open { from { transform: scaleY(0); opacity: 0; } 30% { opacity: 1; } to { transform: scaleY(1); opacity: 1; } }
+.bm-shade { fill: rgba(6, 16, 8, 0.32); pointer-events: none; }
+.bm-light { mix-blend-mode: screen; pointer-events: none; transition: opacity 0.25s ease; animation: bm-breathe-light var(--t, 5s) ease-in-out var(--d, 0s) infinite alternate; }
+@keyframes bm-breathe-light { from { opacity: 0.7; } to { opacity: 1; } }
+.bm-hit { fill: transparent; pointer-events: all; }
+.bm:hover .bm-light, .bm:focus-visible .bm-light { animation: none; opacity: 1; filter: url(#bm-blur) brightness(1.5); }
 
-/* flight: sideways and forwards on different easings, so the path curves; the leaf tumbles as it comes in */
-.tw-fx { animation: tw-fx var(--t, 1.6s) cubic-bezier(0.3, 0.1, 0.2, 1) var(--d, 0s) both; }
-.tw-fy { animation: tw-fy var(--t, 1.6s) cubic-bezier(0.22, 0.75, 0.25, 1) var(--d, 0s) both; }
-@keyframes tw-fx { from { transform: translateX(var(--fx)); } to { transform: translateX(0); } }
-@keyframes tw-fy {
-  0% { transform: translateY(var(--fy)) rotate(var(--fr)) scale(0.3); opacity: 0; }
-  14% { opacity: 1; }
-  72% { transform: translateY(calc(var(--fy) * 0.08)) rotate(calc(var(--fr) * 0.08)) scale(1.06); }
-  100% { transform: translateY(0) rotate(0) scale(1); opacity: 1; }
-}
-@keyframes tw-aura { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
-@keyframes tw-glow { from { opacity: 0.85; } to { opacity: 1; } }
-@keyframes tw-window { from { opacity: 0; transform: scale(0.86); } to { opacity: 1; transform: scale(1); } }
-@keyframes tw-sway { from { transform: rotate(-0.7deg); } to { transform: rotate(0.7deg); } }
+/* the letters: pale gold light, translucent, written one after another */
+.bm-ch { opacity: 0; animation: bm-letter var(--t, 0.45s) ease-out var(--d, 0s) both; filter: drop-shadow(0 0 6px rgba(255, 211, 110, 0.75)); transition: filter 0.25s ease; }
+@keyframes bm-letter { from { opacity: 0; } to { opacity: 1; } }
+.bm-glyph { fill: #fffbe8; fill-opacity: 0.74; font-family: Georgia, serif; font-weight: 700; letter-spacing: 0.06em; paint-order: stroke; stroke: rgba(60, 35, 5, 0.35); stroke-width: 1px; stroke-linejoin: round; user-select: none; transition: fill-opacity 0.25s ease; }
+.bm:hover .bm-glyph, .bm:focus-visible .bm-glyph { fill-opacity: 1; }
+.bm:hover .bm-ch, .bm:focus-visible .bm-ch { filter: drop-shadow(0 0 10px rgba(255, 233, 160, 1)); }
+.bm:focus-visible .bm-hit { stroke: #fff2c0; stroke-width: 3; stroke-linejoin: round; }
 
-/* a category tile: dark glass with its name flat across it; it swells and glows under the pointer */
-.tw-tile { cursor: pointer; outline: none; transition: transform 0.22s ease, filter 0.22s ease; }
-.tw-tile-glass { stroke: #e3b04b; stroke-width: 2; stroke-linejoin: round; filter: drop-shadow(0 2px 3px rgba(3, 14, 40, 0.6)); }
-.tw-tile-inner { fill: none; stroke: rgba(255, 255, 255, 0.28); stroke-width: 1; pointer-events: none; }
-.tw-tile:hover, .tw-tile:focus-visible { transform: scale(1.12); filter: brightness(1.2) drop-shadow(0 0 8px rgba(190, 230, 255, 0.95)); }
-.tw-tile:focus-visible .tw-tile-glass { stroke: #fff2c0; stroke-width: 2.6; }
-.tw-label { fill: #fff; font-family: Georgia, serif; font-weight: 700; letter-spacing: 0.02em; paint-order: stroke; stroke: rgba(6, 28, 70, 0.9); stroke-width: 2.4px; stroke-linejoin: round; pointer-events: none; user-select: none; }
-
-/* loose leaves drifting down once the tree is grown */
-.tw-fall { opacity: 0; animation: tw-fall var(--t, 12s) linear var(--d, 6s) infinite; pointer-events: none; }
-@keyframes tw-fall {
-  0% { opacity: 0; transform: translate(var(--x), -230px) rotate(0deg); }
+/* fireflies and falling leaves */
+.bm-fly { fill: #fff6cf; opacity: 0; filter: drop-shadow(0 0 5px #ffe58a); mix-blend-mode: screen; pointer-events: none; animation: bm-fly var(--t, 8s) ease-in-out var(--d, 0s) infinite; }
+@keyframes bm-fly { 0% { opacity: 0; transform: translate(0, 0); } 20% { opacity: 0.9; } 50% { transform: translate(34px, -90px); } 80% { opacity: 0.8; } 100% { opacity: 0; transform: translate(-20px, -190px); } }
+.bm-fall { opacity: 0; pointer-events: none; animation: bm-fall var(--t, 12s) linear var(--d, 5s) infinite; }
+.bm-leaf { fill: #7fae3b; stroke: #4c7b22; stroke-width: 1.4; opacity: 0.85; }
+@keyframes bm-fall {
+  0% { opacity: 0; transform: translate(var(--x), -20px) rotate(0deg); }
   8% { opacity: 0.9; }
-  50% { transform: translate(calc(var(--x) + 38px), 0) rotate(170deg); }
+  50% { transform: translate(calc(var(--x) + 60px), 700px) rotate(170deg); }
   92% { opacity: 0.9; }
-  100% { opacity: 0; transform: translate(calc(var(--x) - 20px), 230px) rotate(340deg); }
+  100% { opacity: 0; transform: translate(calc(var(--x) - 30px), 1400px) rotate(340deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tw-fx, .tw-fy, .tw-grow, .tw-reveal, .tw-aura, .tw-window, .tw-wrap { animation-duration: 0.01s; animation-delay: 0s; }
-  .tw-canopy, .tw-fall { animation: none; }
-  .tw-fall { display: none; }
+  .bm-cam, .bm-open, .bm-ch, .bm-arch, .tw-arch, .tw-wrap { animation-duration: 0.01s; animation-delay: 0s; }
+  .bm-cam { animation-name: bm-camera; }
+  .bm-light, .bm-flicker { animation: none; opacity: 1; }
+  .bm-flicker { opacity: 0.6; }
+  .bm-fly, .bm-fall { display: none; }
 }
-:root[data-theme="light"] .tw-wrap, :root[data-theme="light"] .tw-head h2 { color: #e6f3ff; }
+:root[data-theme="light"] .tw-wrap, :root[data-theme="light"] .tw-head h2 { color: #ffe9b8; }

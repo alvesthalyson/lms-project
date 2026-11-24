@@ -379,7 +379,7 @@ describe("HomePage: the book of favourites", () => {
   });
 });
 
-describe("HomePage: the glass tree", () => {
+describe("HomePage: the oak tree", () => {
   async function upstairs() {
     const user = userEvent.setup();
     await user.click((await screen.findAllByRole("button", { name: "Subir ao segundo andar" }))[0]!);
@@ -389,15 +389,15 @@ describe("HomePage: the glass tree", () => {
   it("is in the second-floor window and not on the ground floor", async () => {
     renderHome();
     await screen.findAllByRole("button", { name: "Subir ao segundo andar" });
-    expect(screen.queryByRole("button", { name: "Abrir a árvore de vidro: categorias" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Abrir a árvore: categorias" })).not.toBeInTheDocument();
     await upstairs();
-    expect((await screen.findAllByRole("button", { name: "Abrir a árvore de vidro: categorias" })).length).toBeGreaterThan(0);
+    expect((await screen.findAllByRole("button", { name: "Abrir a árvore: categorias" })).length).toBeGreaterThan(0);
   });
 
-  it("opens a tree with a leaf per category, and a leaf opens that shelf", async () => {
+  it("opens the oak with a beam of light per category, and a beam opens that shelf", async () => {
     renderHome();
     const user = await upstairs();
-    await user.click((await screen.findAllByRole("button", { name: "Abrir a árvore de vidro: categorias" }))[0]!);
+    await user.click((await screen.findAllByRole("button", { name: "Abrir a árvore: categorias" }))[0]!);
 
     const tree = await screen.findByRole("dialog", { name: "A árvore das categorias" });
     await user.click(within(tree).getByRole("button", { name: "Poesia" }));
@@ -411,7 +411,7 @@ describe("HomePage: the glass tree", () => {
   it("closes with Esc", async () => {
     renderHome();
     const user = await upstairs();
-    await user.click((await screen.findAllByRole("button", { name: "Abrir a árvore de vidro: categorias" }))[0]!);
+    await user.click((await screen.findAllByRole("button", { name: "Abrir a árvore: categorias" }))[0]!);
     await screen.findByRole("dialog", { name: "A árvore das categorias" });
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

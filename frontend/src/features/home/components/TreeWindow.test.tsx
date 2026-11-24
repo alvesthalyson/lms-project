@@ -5,26 +5,32 @@ import { describe, expect, it, vi } from "vitest";
 import type { Category } from "@/features/books/types";
 
 import { TreeWindow } from "./TreeWindow";
-import { MAX_LABELLED, labelSize, landingTimes, layout, leafPath, tilePath } from "./treeGeometry";
+import { H, MAX_LABELLED, W, beamPolygon, insideArch, landingTimes, layout, point } from "./treeGeometry";
 
 function category(id: number, name: string): Category {
   return { id, name, slug: name.toLowerCase() };
 }
 const CATS = [category(1, "Poesia"), category(2, "Arte"), category(3, "Filosofia")];
-const NAMES = ["Poesia", "Arte", "Filosofia", "História", "Ciência", "Ficção", "Programação", "Romance", "Aventura", "Biografia", "Culinária", "Religião", "Mistério", "Fantasia", "Economia", "Direito", "Medicina", "Música", "Esportes", "Viagens", "Infantil", "Poemas", "Teatro", "Humor"];
+const NAMES = ["Poesia", "Arte", "Filosofia", "História", "Ciência", "Ficção", "Programação", "Romance", "Aventura", "Biografia", "Culinária", "Religião", "Mistério", "Fantasia"];
 
 describe("TreeWindow", () => {
-  it("has one tile per category, each a button with the category's name", () => {
+  it("has one beam per category, each a button with the category's name", () => {
     render(<TreeWindow categories={CATS} onPick={vi.fn()} onClose={vi.fn()} />);
     expect(screen.getAllByRole("button").filter((b) => !b.classList.contains("hm-close"))).toHaveLength(3);
     for (const name of ["Poesia", "Arte", "Filosofia"]) expect(screen.getByRole("button", { name })).toBeInTheDocument();
   });
 
-  it("writes each name flat across its tile, so that it can be read", () => {
+  it("writes every name letter by letter down its beam", () => {
     const { container } = render(<TreeWindow categories={CATS} onPick={vi.fn()} onClose={vi.fn()} />);
-    const labels = [...container.querySelectorAll(".tw-label")];
-    expect(labels.map((l) => l.textContent)).toEqual(["Poesia", "Arte", "Filosofia"]);
-    for (const label of labels) expect(label.getAttribute("transform")).toBeNull(); // never turned or tilted
+    const beams = [...container.querySelectorAll(".bm")];
+    expect(beams).toHaveLength(3);
+    const words = beams.map((beam) => [...beam.querySelectorAll(".bm-glyph")].map((g) => g.textContent).join(""));
+    expect(words).toEqual(["Poesia", "Arte", "Filosofia"]);
+  });
+
+  it("shows the oak picture", () => {
+    const { container } = render(<TreeWindow categories={CATS} onPick={vi.fn()} onClose={vi.fn()} />);
+    expect(container.querySelector("image")?.getAttribute("href")).toBe("/arvore-carvalho.jpg");
   });
 
   it("picks a category by click and by keyboard", async () => {
@@ -36,6 +42,8 @@ describe("TreeWindow", () => {
     screen.getByRole("button", { name: "Filosofia" }).focus();
     await user.keyboard("{Enter}");
     expect(onPick).toHaveBeenLastCalledWith(CATS[2]);
+    await user.keyboard(" ");
+    expect(onPick).toHaveBeenCalledTimes(3);
   });
 
   it("closes with Esc, the X button and a click outside", async () => {
@@ -49,88 +57,105 @@ describe("TreeWindow", () => {
     expect(onClose).toHaveBeenCalledTimes(3);
   });
 
-  it("says so, and offers no tiles to pick, when there are no categories", () => {
+  it("says so, and offers no beams to pick, when there are no categories", () => {
     render(<TreeWindow categories={[]} onPick={vi.fn()} onClose={vi.fn()} />);
     expect(screen.getByText("Ainda não há categorias no acervo.")).toBeInTheDocument();
-    expect(document.querySelectorAll(".tw-tile")).toHaveLength(0);
+    expect(document.querySelectorAll(".bm")).toHaveLength(0);
   });
 
-  it("draws the tree: solid limbs revealed from the base, thin twigs, a crown of glass cells, and the tiles on top", () => {
+  it("draws at most MAX_LABELLED beams", () => {
+    const many = NAMES.map((name, i) => category(i + 1, name));
+    const { container } = render(<TreeWindow categories={many} onPick={vi.fn()} onClose={vi.fn()} />);
+    expect(container.querySelectorAll(".bm")).toHaveLength(MAX_LABELLED);
+  });
+
+  it("brings the scene to life: flickering lights, fireflies and falling leaves", () => {
     const { container } = render(<TreeWindow categories={CATS} onPick={vi.fn()} onClose={vi.fn()} />);
-    expect(container.querySelectorAll("mask .tw-reveal").length).toBeGreaterThanOrEqual(15); // trunk, limbs, branches, roots
-    expect(container.querySelectorAll(".tw-edge").length).toBeGreaterThanOrEqual(30); // two gold edges on each
-    expect(container.querySelectorAll(".tw-wood.tw-grow").length).toBeGreaterThan(30); // the twigs
-    expect(container.querySelectorAll(".tw-leaf").length).toBeGreaterThan(60);
-    expect(container.querySelectorAll(".tw-tile")).toHaveLength(3);
+    expect(container.querySelectorAll(".bm-flicker").length).toBeGreaterThanOrEqual(5);
+    expect(container.querySelectorAll(".bm-fly").length).toBeGreaterThanOrEqual(5);
+    expect(container.querySelectorAll(".bm-fall").length).toBeGreaterThanOrEqual(3);
   });
 });
 
-describe("tree geometry", () => {
-  it("is the same tree every time, with unique keys", () => {
+describe("beam geometry", () => {
+  it("is the same every time, with unique keys", () => {
     const a = layout(NAMES.slice(0, 8));
     expect(layout(NAMES.slice(0, 8))).toEqual(a);
-    for (const list of [a.branches, a.leaves, a.tiles]) expect(new Set(list.map((x) => x.key)).size).toBe(list.length);
+    expect(new Set(a.map((b) => b.key)).size).toBe(a.length);
   });
 
-  it("places one tile per category, in reading order: top to bottom, then left to right", () => {
-    const { tiles } = layout(NAMES.slice(0, 8));
-    expect(tiles.map((t) => t.index)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
-    const rows = tiles.map((t) => Math.round(t.y / 36));
-    expect(rows).toEqual([...rows].sort((a, b) => a - b));
+  it("has no beams for no names, and caps the number of beams", () => {
+    expect(layout([])).toEqual([]);
+    expect(layout(NAMES)).toHaveLength(MAX_LABELLED);
   });
 
-  it("never lets two names overlap (up to eight of them) and always keeps them inside the round window", () => {
-    for (const n of [1, 3, 8]) {
-      const { tiles } = layout(NAMES.slice(0, n));
-      for (let i = 0; i < tiles.length; i++)
-        for (let j = i + 1; j < tiles.length; j++) {
-          const a = tiles[i]!;
-          const b = tiles[j]!;
-          const apartX = Math.abs(a.x - b.x) - (a.w + b.w) / 2;
-          const apartY = Math.abs(a.y - b.y) - (a.h + b.h) / 2;
-          expect(apartX >= 0 || apartY >= 0).toBe(true);
-        }
+  it("lays the beams out from left to right, in the order of the names", () => {
+    const beams = layout(NAMES.slice(0, 8));
+    expect(beams.map((b) => b.name)).toEqual(NAMES.slice(0, 8));
+    const xs = beams.map((b) => point(b, 600 - b.y0).x); // where each one crosses the same row
+    for (let i = 1; i < xs.length; i += 1) expect(xs[i]!).toBeGreaterThan(xs[i - 1]!);
+  });
+
+  it("makes the letters grow down the beam, and the beam widen with them", () => {
+    for (const beam of layout(["Filosofia", "Arte"])) {
+      const sizes = beam.glyphs.map((g) => g.size);
+      for (let i = 1; i < sizes.length; i += 1) expect(sizes[i]!).toBeGreaterThan(sizes[i - 1]!);
+      expect(sizes[0]!).toBeLessThan(sizes[sizes.length - 1]! / 2);
+      expect(beam.halfBottom).toBeGreaterThan(beam.halfTop);
+      const dists = beam.glyphs.map((g) => g.dist);
+      for (let i = 1; i < dists.length; i += 1) expect(dists[i]!).toBeGreaterThan(dists[i - 1]!);
+      expect(beam.length).toBeGreaterThanOrEqual(620);
     }
-    for (const n of [0, 3, 8, 14, 20, 40]) {
-      for (const t of layout(NAMES.slice(0, n)).tiles) expect(Math.hypot(Math.abs(t.x) + t.w / 2, Math.abs(t.y) + t.h / 2)).toBeLessThanOrEqual(172);
+  });
+
+  it.each([1, 2, 3, 5, 8, 12])("keeps every letter inside the picture's arch, for %i names", (n) => {
+    for (const beam of layout(NAMES.slice(0, n))) {
+      for (const glyph of beam.glyphs) {
+        const p = point(beam, glyph.dist);
+        expect(p.x).toBeGreaterThan(0);
+        expect(p.x).toBeLessThan(W);
+        expect(p.y).toBeLessThan(H);
+        expect(insideArch(p.x, p.y, glyph.size * 0.5)).toBe(true);
+      }
     }
   });
 
-  it("makes the tile as wide as its name needs, and the writing smaller when there are many names", () => {
-    const { tiles } = layout(["Arte", "Programação"]);
-    expect(tiles[1]!.w).toBeGreaterThan(tiles[0]!.w);
-    expect(labelSize(8)).toBe(12);
-    expect(labelSize(14)).toBe(11);
-    expect(labelSize(20)).toBe(10);
+  it.each([2, 5, 8, 12])("never lets the letters of different beams overlap, for %i names", (n) => {
+    const discs = layout(NAMES.slice(0, n)).flatMap((beam) =>
+      beam.glyphs.map((g) => ({ index: beam.index, ...point(beam, g.dist), r: g.size * 0.45 })),
+    );
+    for (let i = 0; i < discs.length; i += 1) {
+      for (let j = i + 1; j < discs.length; j += 1) {
+        const a = discs[i]!;
+        const b = discs[j]!;
+        if (a.index !== b.index) expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThanOrEqual(a.r + b.r);
+      }
+    }
   });
 
-  it("grows from the trunk outwards: trunk, limbs, branches and twigs start in that order, then the roots exist", () => {
-    const { branches } = layout(NAMES.slice(0, 8));
-    const first = (depth: number) => Math.min(...branches.filter((b) => b.depth === depth).map((b) => b.delay));
-    for (let depth = 0; depth < 4; depth++) expect(first(depth)).toBeLessThan(first(depth + 1));
-    expect(branches.filter((b) => b.depth === 5)).toHaveLength(6);
-    expect(branches.filter((b) => b.shape).every((b) => /^M .* Z$/.test(b.shape!.fill) && !b.shape!.fill.includes("NaN"))).toBe(true);
+  it("opens the beams one after another and writes the letters in order", () => {
+    const beams = layout(NAMES.slice(0, 5));
+    for (let i = 1; i < beams.length; i += 1) expect(beams[i]!.delay).toBeGreaterThan(beams[i - 1]!.delay);
+    for (const beam of beams) {
+      expect(beam.glyphs[0]!.delay).toBeGreaterThan(beam.delay);
+      for (let i = 1; i < beam.glyphs.length; i += 1) expect(beam.glyphs[i]!.delay).toBeGreaterThan(beam.glyphs[i - 1]!.delay);
+    }
   });
 
-  it("tapers the trunk, wide at the root and narrower where it forks", () => {
-    const trunk = layout([]).branches.find((b) => b.depth === 0)!;
-    expect(trunk.shape).toBeDefined();
-    expect(trunk.width).toBeGreaterThan(36);
-    expect(layout([]).tiles).toHaveLength(0);
-  });
-
-  it("caps the named tiles at the number that fits, and gives each a landing time after the branches have grown", () => {
-    expect(layout(NAMES).tiles).toHaveLength(MAX_LABELLED);
+  it("gives one time per beam, when its name is complete, for the sound", () => {
+    const beams = layout(NAMES.slice(0, 8));
     const times = landingTimes(NAMES.slice(0, 8));
     expect(times).toHaveLength(8);
-    expect(Math.min(...times)).toBeGreaterThan(2.5);
-    expect(Math.max(...times)).toBeLessThan(7);
+    times.forEach((time, i) => expect(time).toBeGreaterThan(beams[i]!.glyphs[beams[i]!.glyphs.length - 1]!.delay));
+    expect(landingTimes([])).toEqual([]);
   });
 
-  it("draws closed shapes", () => {
-    for (const d of [leafPath(10, 30), tilePath(80, 28)]) {
-      expect(d).toMatch(/^M .* Z$/);
-      expect(d).not.toContain("NaN");
-    }
+  it("draws the beam as a trapezoid, wider at the bottom, and a click area a little wider still", () => {
+    const [beam] = layout(["Arte"]);
+    const parse = (s: string) => s.split(" ").map((p) => p.split(",").map(Number) as [number, number]);
+    const [tl, tr, br, bl] = parse(beamPolygon(beam!));
+    expect(tr![0] - tl![0]).toBeLessThan(br![0] - bl![0]);
+    const [wtl] = parse(beamPolygon(beam!, 14));
+    expect(wtl![0]).toBeLessThan(tl![0]);
   });
 });
