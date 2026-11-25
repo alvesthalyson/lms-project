@@ -6,16 +6,16 @@ import type { Category } from "@/features/books/types";
 import { usePrefs } from "@/lib/i18n/store";
 
 import { ForestWindow } from "./ForestWindow";
+import { FRAMES } from "./forestScene";
 import { taleOfTheDay } from "./stories";
 
-const ORIGIN = { x: 0.43, y: 0.255, r: 0.049 };
 const POETRY: Category = { id: 1, name: "Poesia", slug: "poesia" };
 const FANTASY: Category = { id: 2, name: "Fantasia", slug: "fantasia" };
 
 function show(categories: Category[], props: Partial<{ onOpenCategory: (c: Category) => void; onClose: () => void }> = {}) {
   const onOpenCategory = props.onOpenCategory ?? vi.fn();
   const onClose = props.onClose ?? vi.fn();
-  const view = render(<ForestWindow picture="/sala-2.jpg" aspect={1.777} origin={ORIGIN} categories={categories} onOpenCategory={onOpenCategory} onClose={onClose} />);
+  const view = render(<ForestWindow categories={categories} onOpenCategory={onOpenCategory} onClose={onClose} />);
   return { ...view, onOpenCategory, onClose };
 }
 
@@ -24,11 +24,17 @@ afterEach(() => {
 });
 
 describe("ForestWindow", () => {
-  it("is a dialog that holds the forest picture and the picture of the room it zooms out of", () => {
+  it("is a dialog that holds the forest picture and, under it, every frame of the journey in order", () => {
     const { container } = show([POETRY]);
     expect(screen.getByRole("dialog", { name: "A floresta dos vaga-lumes" })).toBeInTheDocument();
     expect((container.querySelector(".fw-forest-img") as HTMLElement).style.backgroundImage).toContain("/floresta-vagalumes.jpg");
-    expect((container.querySelector(".fw-room") as HTMLElement).style.backgroundImage).toContain("/sala-2.jpg");
+    const frames = [...container.querySelectorAll<HTMLImageElement>(".fw-frame")];
+    expect(frames.map((img) => img.getAttribute("src"))).toEqual(Array.from({ length: FRAMES }, (_, i) => `/transicao/f${i + 1}.jpg`));
+    const delays = frames.map((img) => Number(img.style.getPropertyValue("--d").replace("s", "")));
+    for (let i = 1; i < delays.length; i += 1) expect(delays[i]!).toBeGreaterThan(delays[i - 1]!);
+    // the forest is above the journey, so that it can arrive out of the light
+    const order = [...container.querySelector(".fw-backdrop")!.children].map((el) => el.className);
+    expect(order.indexOf("fw-forest")).toBeGreaterThan(order.indexOf("fw-journey"));
   });
 
   it("tells the tale of the day, all its lines in order, with its title", () => {
@@ -82,12 +88,5 @@ describe("ForestWindow", () => {
     expect(container.querySelectorAll(".fw-spark").length).toBeGreaterThanOrEqual(40);
     expect(container.querySelector(".fw-flash")).not.toBeNull();
     expect(container.querySelectorAll(".fw-fly").length).toBeGreaterThanOrEqual(15);
-  });
-
-  it("zooms the room by an amount that depends on the window's size on the screen", () => {
-    const { container } = show([POETRY]);
-    const z = Number((container.querySelector(".fw-backdrop") as HTMLElement).style.getPropertyValue("--z"));
-    expect(z).toBeGreaterThanOrEqual(3);
-    expect(z).toBeLessThanOrEqual(16);
   });
 });

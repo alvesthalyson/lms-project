@@ -1,21 +1,41 @@
 /**
- * The scene of the window onto the firefly forest, as plain data: the timeline, the sparks of the swirl, the
- * fireflies, and how far the camera has to zoom to go through the stained glass. Pure, so it can be tested.
+ * The scene of the window onto the firefly forest, as plain data: the timeline, the sparks of the swirl and the
+ * fireflies. Pure, so it can be tested.
  *
- * Timeline (seconds after the window opens): the picture of the room zooms into the stained glass (0 - 3), the
- * glass turns into a swirl of light that flashes (about 2), the forest arrives out of the light (2.4), then the
- * title (3.6) and the tale, one line at a time, and at the end the way back to the shelves.
+ * Timeline (seconds after the window opens): the frames of the journey (the library, the camera going up to the
+ * stained glass, the glass turning into a swirl of light, a tunnel, the forest) melt into one another; sparks swirl
+ * in, a flash whites everything out, the forest in full resolution arrives out of the light, then the title and the
+ * tale, one line at a time, and at the end the way back to the shelves.
  */
 
+/** The frames of the journey, in order: `/transicao/f1.jpg` ... `/transicao/f9.jpg`. */
+export const FRAMES = 9;
+export const FOREST = "/floresta-vagalumes.jpg";
+
+export function frameUrl(i: number): string {
+  return `/transicao/f${i + 1}.jpg`;
+}
+
+/** Everything the window shows, so that it can be fetched before the reader opens it. */
+export function forestAssets(): string[] {
+  return [...Array.from({ length: FRAMES }, (_, i) => frameUrl(i)), FOREST];
+}
+
 export const TIMES = {
-  zoom: 3,
-  swirlStart: 0.5,
-  flash: 2.1,
-  arrive: 2.4,
-  title: 3.6,
-  firstLine: 4.6,
+  /** Seconds between one frame starting to melt in and the next. */
+  frame: 0.62,
+  swirlStart: 2,
+  flash: 4.5,
+  arrive: 5,
+  title: 6.6,
+  firstLine: 7.6,
   line: 5.2,
 } as const;
+
+/** When frame `i` starts to melt in. */
+export function frameDelay(i: number): number {
+  return Number((i * TIMES.frame).toFixed(2));
+}
 
 /** When line `i` of the tale appears. */
 export function lineDelay(i: number): number {
@@ -98,15 +118,4 @@ export function fireflies(count = 22): Firefly[] {
     dx: Math.round(-12 + r() * 24),
     dy: Math.round(8 + r() * 14),
   }));
-}
-
-/**
- * How much to zoom the room's picture so that the (round) stained-glass window grows to cover the whole screen.
- * The picture is cover-fitted, so it is as wide as the screen or `aspect` times as wide as it is tall, whichever is more.
- */
-export function zoomFor(viewport: { w: number; h: number }, aspect: number, radius: number): number {
-  const pictureWidth = Math.max(viewport.w, viewport.h * aspect);
-  const diameter = 2 * radius * pictureWidth;
-  const zoom = (1.05 * Math.hypot(viewport.w, viewport.h)) / diameter;
-  return Number(Math.min(16, Math.max(3, zoom)).toFixed(2));
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { TIMES, endDelay, fireflies, lineDelay, swirl, zoomFor } from "./forestScene";
+import { FOREST, FRAMES, TIMES, endDelay, fireflies, forestAssets, frameDelay, frameUrl, lineDelay, swirl } from "./forestScene";
 import { TALES, dayNumber, taleOfTheDay } from "./stories";
 
 describe("forest timeline", () => {
@@ -13,8 +13,23 @@ describe("forest timeline", () => {
 
   it("brings the forest in after the flash starts, and the tale after the forest", () => {
     expect(TIMES.arrive).toBeGreaterThan(TIMES.flash);
-    expect(TIMES.arrive).toBeLessThan(TIMES.zoom);
     expect(TIMES.title).toBeGreaterThan(TIMES.arrive);
+  });
+
+  it("melts the frames in one after another, the last before the flash, so that nothing jumps", () => {
+    for (let i = 1; i < FRAMES; i += 1) expect(frameDelay(i) - frameDelay(i - 1)).toBeCloseTo(TIMES.frame, 5);
+    expect(frameDelay(0)).toBe(0);
+    expect(frameDelay(FRAMES - 1)).toBeLessThan(TIMES.flash);
+    expect(TIMES.swirlStart).toBeLessThan(TIMES.flash);
+  });
+
+  it("knows where every picture is, to fetch them ahead of time", () => {
+    expect(frameUrl(0)).toBe("/transicao/f1.jpg");
+    expect(frameUrl(FRAMES - 1)).toBe(`/transicao/f${FRAMES}.jpg`);
+    const assets = forestAssets();
+    expect(assets).toHaveLength(FRAMES + 1);
+    expect(assets).toContain(FOREST);
+    expect(new Set(assets).size).toBe(assets.length);
   });
 });
 
@@ -46,28 +61,6 @@ describe("swirl and fireflies", () => {
       expect(fly.y).toBeLessThanOrEqual(100);
       expect(fly.delay).toBeGreaterThan(TIMES.arrive);
     }
-  });
-});
-
-describe("zoomFor", () => {
-  const viewport = { w: 1920, h: 1080 };
-
-  it("zooms until the round window covers the screen's diagonal", () => {
-    const z = zoomFor(viewport, 1850 / 850, 0.049);
-    const diameterOnScreen = 2 * 0.049 * Math.max(1920, 1080 * (1850 / 850)) * z;
-    expect(diameterOnScreen).toBeGreaterThanOrEqual(Math.hypot(1920, 1080) * 0.99);
-  });
-
-  it("zooms more for a smaller window, and is kept within sane limits", () => {
-    expect(zoomFor(viewport, 1.78, 0.03)).toBeGreaterThan(zoomFor(viewport, 1.78, 0.06));
-    expect(zoomFor(viewport, 1.78, 0.001)).toBe(16);
-    expect(zoomFor(viewport, 1.78, 0.9)).toBe(3);
-  });
-
-  it("also works on a phone-shaped screen, where the cover-fitted picture is wider than the screen", () => {
-    const phone = zoomFor({ w: 390, h: 844 }, 1.78, 0.049);
-    expect(phone).toBeGreaterThanOrEqual(3);
-    expect(phone).toBeLessThanOrEqual(16);
   });
 });
 

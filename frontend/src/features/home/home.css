@@ -467,7 +467,6 @@
 
 /* ───────── The window of the library, opened: a firefly forest where the tale of the day is told ───────── */
 .fw-backdrop {
-  --w: max(100vw, calc(100vh * var(--asp)));
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -477,31 +476,25 @@
   animation: hm-fade 0.3s ease both;
 }
 
-/* the room's picture, laid out exactly like the Home's, so that the camera starts where the reader was */
-.fw-room {
+/* the journey: the frames melt into one another, each one a little closer than the last, so it never looks like a GIF */
+.fw-journey { position: absolute; inset: 0; overflow: hidden; animation: fw-journey 4.2s ease-in 0.8s both; }
+@keyframes fw-journey { from { transform: scale(1); } to { transform: scale(1.12); } }
+.fw-frame {
   position: absolute;
-  width: var(--w);
-  height: calc(var(--w) / var(--asp));
-  left: calc((100vw - var(--w)) / 2);
-  top: calc((100vh - var(--w) / var(--asp)) / 2);
-  background-size: 100% 100%;
-  transform-origin: calc(var(--fx) * 100%) calc(var(--fy) * 100%);
-  animation: fw-zoom 3s cubic-bezier(0.6, 0, 0.3, 1) both, fw-roomfade 0.8s ease 2.5s forwards;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  user-select: none;
+  animation: fw-frame 1.1s ease-out var(--d) both;
 }
-@keyframes fw-zoom {
-  from { transform: scale(1); filter: blur(0) brightness(1); }
-  70% { filter: blur(0.6px) brightness(1.1); }
-  to { transform: scale(var(--z)); filter: blur(4px) brightness(1.7); }
+@keyframes fw-frame {
+  from { opacity: 0; transform: scale(1.01); filter: blur(7px) brightness(1.15); }
+  to { opacity: 1; transform: scale(1.05); filter: blur(0) brightness(1); }
 }
-@keyframes fw-roomfade { to { opacity: 0; visibility: hidden; } }
-
-/* the swirl of light and the flash, centred on the stained-glass window */
-.fw-swirl, .fw-flash {
-  position: absolute;
-  left: calc((100vw - var(--w)) / 2 + var(--fx) * var(--w));
-  top: calc((100vh - var(--w) / var(--asp)) / 2 + var(--fy) * var(--w) / var(--asp));
-  pointer-events: none;
-}
+/* the swirl of light and the flash, centred on the stained glass, which the frames bring to the middle of the screen */
+.fw-swirl, .fw-flash { position: absolute; left: 50%; top: 46%; pointer-events: none; }
 .fw-swirl { width: 0; height: 0; }
 .fw-orbit { position: absolute; left: 0; top: 0; animation: fw-orbit var(--t) cubic-bezier(0.4, 0, 0.6, 1) var(--d) both; }
 @keyframes fw-orbit {
@@ -533,7 +526,7 @@
   background: radial-gradient(circle, #fff 0%, rgba(165, 218, 255, 0.85) 32%, rgba(120, 190, 255, 0) 70%);
   opacity: 0;
   mix-blend-mode: screen;
-  animation: fw-flash 1.6s ease-out 2.1s both;
+  animation: fw-flash 1.8s ease-out 4.5s both;
 }
 @keyframes fw-flash {
   0% { opacity: 0; transform: scale(0.2); }
@@ -542,12 +535,12 @@
 }
 
 /* the forest arrives out of the light, then drifts slowly */
-.fw-forest { position: absolute; inset: 0; animation: fw-arrive 2.4s ease-out 2.4s both; }
+.fw-forest { position: absolute; inset: 0; animation: fw-arrive 2.4s ease-out 5s both; }
 @keyframes fw-arrive {
   from { opacity: 0; transform: scale(1.35); filter: blur(10px) brightness(1.8); }
   to { opacity: 1; transform: scale(1); filter: none; }
 }
-.fw-forest-img { position: absolute; inset: -4%; background-size: cover; background-position: center; animation: fw-drift 46s ease-in-out 4.8s infinite alternate; }
+.fw-forest-img { position: absolute; inset: -4%; background-size: cover; background-position: center; animation: fw-drift 46s ease-in-out 7.4s infinite alternate; }
 @keyframes fw-drift {
   from { transform: scale(1.03) translate(0, 0); }
   to { transform: scale(1.12) translate(-1.5%, 1%); }
@@ -574,15 +567,15 @@
   inset: 0;
   pointer-events: none;
   background: linear-gradient(to top, rgba(2, 6, 13, 0.9), rgba(2, 6, 13, 0.55) 28%, transparent 56%), radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(2, 6, 13, 0.6));
-  animation: fw-fade 1.4s ease 3.4s both;
+  animation: fw-fade 1.4s ease 6.4s both;
 }
 @keyframes fw-fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* the tale: title, then one line at a time, then the way on */
 .fw-close { position: fixed; top: 16px; right: 16px; z-index: 3; animation: fw-fade 0.6s ease 0.4s both; }
 .fw-story { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 6vw 6vh; text-align: center; pointer-events: none; z-index: 2; }
-.fw-kicker { margin: 0; font: 600 11px "Cinzel", Georgia, serif; letter-spacing: 0.32em; text-transform: uppercase; color: #9fd0ff; animation: fw-rise 1.2s ease 3.6s both; }
-.fw-title { margin: 6px 0 0; font: 600 clamp(1.4rem, 3.6vw, 2.2rem) / 1.15 Georgia, serif; color: #ffe9b8; text-shadow: 0 2px 14px #000; animation: fw-rise 1.2s ease 3.8s both; }
+.fw-kicker { margin: 0; font: 600 11px "Cinzel", Georgia, serif; letter-spacing: 0.32em; text-transform: uppercase; color: #9fd0ff; animation: fw-rise 1.2s ease 6.6s both; }
+.fw-title { margin: 6px 0 0; font: 600 clamp(1.4rem, 3.6vw, 2.2rem) / 1.15 Georgia, serif; color: #ffe9b8; text-shadow: 0 2px 14px #000; animation: fw-rise 1.2s ease 6.8s both; }
 .fw-lines { position: relative; max-width: 46rem; min-height: 7.5em; margin: 16px auto 0; font: italic 400 clamp(1.05rem, 2.3vw, 1.45rem) / 1.5 Georgia, serif; text-shadow: 0 2px 12px #000; }
 .fw-line { position: absolute; left: 0; right: 0; top: 0; margin: 0; opacity: 0; animation: fw-line var(--ls) ease var(--d) both; }
 .fw-line--last { animation-name: fw-line-last; }
@@ -608,7 +601,7 @@
 .fw-btn--main { border-color: #e3b04b; color: #ffe9b8; }
 
 @media (prefers-reduced-motion: reduce) {
-  .fw-room, .fw-swirl, .fw-flash, .fw-fireflies { display: none; }
+  .fw-journey, .fw-swirl, .fw-flash, .fw-fireflies { display: none; }
   .fw-forest, .fw-forest-img, .fw-vignette, .fw-close, .fw-kicker, .fw-title, .fw-end { animation: none; }
   .fw-lines { min-height: 0; }
   .fw-line { position: static; opacity: 1; animation: none; margin: 0 0 0.6em; }

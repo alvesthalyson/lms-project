@@ -13,6 +13,7 @@ import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
 import { ForestWindow } from "../components/ForestWindow";
+import { forestAssets } from "../components/forestScene";
 import { HourglassDialog } from "../components/HourglassDialog";
 import { GlobeDialog } from "../globe/GlobeDialog";
 import { AccountBar } from "../components/AccountBar";
@@ -103,6 +104,13 @@ export function HomePage() {
     sfx.startAmbient();
     return () => sfx.stopAmbient();
   }, []);
+
+  // The window's pictures are fetched as soon as the room that has the window is shown, so that the journey does not stall.
+  const hasWindow = HOME_ROOMS[roomId].tree !== undefined;
+  useEffect(() => {
+    if (!hasWindow) return;
+    for (const src of forestAssets()) new Image().src = src;
+  }, [hasWindow]);
 
   const theme = usePrefs((s) => s.theme);
   const room = HOME_ROOMS[roomId];
@@ -261,16 +269,7 @@ export function HomePage() {
 
       {reveal && <PicksReveal origin={reveal} onClose={closeReveal} />}
       {open && <ShelfInspector target={open} onClose={close} />}
-      {forestOpen && room.tree && (
-        <ForestWindow
-          picture={background}
-          aspect={room.aspect}
-          origin={{ x: room.tree.left + room.tree.width / 2, y: room.tree.top + room.tree.height / 2, r: room.tree.width / 2 }}
-          categories={categories}
-          onOpenCategory={continueTale}
-          onClose={closeForest}
-        />
-      )}
+      {forestOpen && <ForestWindow categories={categories} onOpenCategory={continueTale} onClose={closeForest} />}
       {hourglassOpen && <HourglassDialog onClose={closeHourglass} />}
       {globeOpen && <GlobeDialog onClose={closeGlobe} onPick={pickCountry} />}
       {/* The Home lives outside AppLayout, so it brings its own toasts (reservation results, errors). */}
