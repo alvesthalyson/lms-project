@@ -172,4 +172,14 @@ describe("rose sound", () => {
     sfx.bloom(Array.from({ length: 30 }, (_, i) => 3 + i * 0.1));
     expect(made.oscillators).toBe(3 + 12);
   });
+  it("plays the portal: a whoosh, a swell, nine rising notes and a shimmer; silent when off", async () => {
+    vi.stubGlobal("AudioContext", FakeAudioContext);
+    const sfx = await freshEngine();
+    sfx.portal();
+    expect(made.contexts).toBe(0);
+    sfx.setSoundEnabled(true);
+    sfx.portal();
+    expect(made.oscillators).toBe(1 + 9); // the swell and the notes
+    expect(made.sources).toBe(2); // the whoosh and the shimmer
+  });
 });

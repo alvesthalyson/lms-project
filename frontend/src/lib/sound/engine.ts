@@ -294,3 +294,18 @@ export function bloom(landings: readonly number[]): void {
     tone(c, t + at, scale[i % scale.length]! * octave, 1.1, 0.05);
   });
 }
+
+/**
+ * The window opens onto the forest: a long whoosh that rises as the camera goes through the glass, a run of glass
+ * notes that climb with it, a low swell, and a shimmer when the light flashes and the forest appears.
+ */
+export function portal(): void {
+  const c = context();
+  if (!c) return;
+  const t = c.currentTime;
+  const scale = [392, 440, 523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66];
+  noiseBurst(c, t + 0.1, 2.6, "bandpass", 220, 3200, 1.1, 0.06, 1.4);
+  tone(c, t + 0.2, 110, 2.8, 0.05, 220);
+  scale.forEach((freq, i) => tone(c, t + 0.9 + i * 0.22, freq, 1.2, 0.04));
+  noiseBurst(c, t + 2.2, 1.8, "highpass", 5000, 2200, 0.7, 0.03, 0.2);
+}

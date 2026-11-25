@@ -379,7 +379,8 @@ describe("HomePage: the book of favourites", () => {
   });
 });
 
-describe("HomePage: the oak tree", () => {
+describe("HomePage: the window onto the forest", () => {
+  const OPEN = "Olhar pela janela: uma história";
   async function upstairs() {
     const user = userEvent.setup();
     await user.click((await screen.findAllByRole("button", { name: "Subir ao segundo andar" }))[0]!);
@@ -389,31 +390,36 @@ describe("HomePage: the oak tree", () => {
   it("is in the second-floor window and not on the ground floor", async () => {
     renderHome();
     await screen.findAllByRole("button", { name: "Subir ao segundo andar" });
-    expect(screen.queryByRole("button", { name: "Abrir a árvore: categorias" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: OPEN })).not.toBeInTheDocument();
     await upstairs();
-    expect((await screen.findAllByRole("button", { name: "Abrir a árvore: categorias" })).length).toBeGreaterThan(0);
+    expect((await screen.findAllByRole("button", { name: OPEN })).length).toBeGreaterThan(0);
   });
 
-  it("opens the oak with a beam of light per category, and a beam opens that shelf", async () => {
+  it("opens onto the forest, tells a tale, and its ending leads to a shelf", async () => {
     renderHome();
     const user = await upstairs();
-    await user.click((await screen.findAllByRole("button", { name: "Abrir a árvore: categorias" }))[0]!);
+    await user.click((await screen.findAllByRole("button", { name: OPEN }))[0]!);
 
-    const tree = await screen.findByRole("dialog", { name: "A árvore das categorias" });
-    await user.click(within(tree).getByRole("button", { name: "Poesia" }));
+    const forest = await screen.findByRole("dialog", { name: "A floresta dos vaga-lumes" });
+    expect(forest.querySelectorAll(".fw-line").length).toBeGreaterThanOrEqual(4);
+    await user.click(within(forest).getByRole("button", { name: "Continuar a história: estante Poesia" }));
 
-    expect(screen.queryByRole("dialog", { name: "A árvore das categorias" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "A floresta dos vaga-lumes" })).not.toBeInTheDocument();
     const shelf = await screen.findByRole("dialog");
     expect(within(shelf).getByRole("heading", { name: "Poesia" })).toBeInTheDocument();
     await waitFor(() => expect(listBooks).toHaveBeenCalledWith(expect.objectContaining({ category: POETRY.id }), expect.anything()));
   });
 
-  it("closes with Esc", async () => {
+  it("closes with Esc and with the way back to the library", async () => {
     renderHome();
     const user = await upstairs();
-    await user.click((await screen.findAllByRole("button", { name: "Abrir a árvore: categorias" }))[0]!);
-    await screen.findByRole("dialog", { name: "A árvore das categorias" });
+    await user.click((await screen.findAllByRole("button", { name: OPEN }))[0]!);
+    await screen.findByRole("dialog", { name: "A floresta dos vaga-lumes" });
     await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await user.click((await screen.findAllByRole("button", { name: OPEN }))[0]!);
+    await user.click(within(await screen.findByRole("dialog", { name: "A floresta dos vaga-lumes" })).getByRole("button", { name: "Voltar à biblioteca" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

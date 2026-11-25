@@ -465,60 +465,151 @@
 :root[data-theme="light"] .hg-row--late { background: rgba(190, 60, 40, 0.12); }
 :root[data-theme="light"] .hg-row--late .hg-when { color: #a02a14; }
 
-/* ───────── The tree (categories): the oak, with a beam of light per category ───────── */
-.tw-backdrop { overflow: hidden; background: radial-gradient(circle at 50% 50%, rgba(255, 214, 120, 0.16), rgba(2, 8, 4, 0.9) 72%); }
-.tw-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; max-height: 100%; width: min(680px, 100%); color: #f3ead0; text-align: center; animation: hm-fade 0.3s ease both; }
-.tw-head h2 { margin: 2px 0 6px; font: 600 clamp(1.3rem, 3.2vw, 1.8rem) / 1.1 Georgia, serif; color: #ffe9b8; }
-/* the picture is shown in an arch with a double gold-and-slate border and a warm glow */
-.tw-arch { width: min(560px, 100%, calc((100vh - 190px) * 0.6847)); aspect-ratio: 1038 / 1516; overflow: hidden; border-radius: 50% 50% 14px 14px / 34% 34% 14px 14px; box-shadow: 0 0 0 5px #2a3a2c, 0 0 0 8px #b98d3c, 0 0 60px rgba(255, 200, 110, 0.35); animation: bm-arch 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.tw-svg { display: block; width: 100%; height: 100%; }
-@keyframes bm-arch { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
-
-/* the camera: the picture rises from the door, up the trunk, to the crown, then breathes */
-.bm-cam { transform-origin: 519px 758px; animation: bm-camera 6s cubic-bezier(0.25, 0.6, 0.2, 1) both, bm-breathe 14s ease-in-out 6s infinite alternate; }
-@keyframes bm-camera { from { transform: translateY(-130px) scale(1.2); } to { transform: translateY(0) scale(1); } }
-@keyframes bm-breathe { from { transform: scale(1); } to { transform: scale(1.018); } }
-
-/* lit windows and the door: warm light that flickers like a candle */
-.bm-flicker { mix-blend-mode: screen; opacity: 0; animation: bm-flicker var(--t, 3s) ease-in-out var(--d, 0s) infinite alternate; }
-@keyframes bm-flicker { 0% { opacity: 0.35; } 35% { opacity: 0.9; } 60% { opacity: 0.55; } 100% { opacity: 1; } }
-
-/* a beam: a shaft of light that opens from the crown downwards, with a faint shade behind it so that the name reads */
-.bm { cursor: pointer; outline: none; }
-.bm-open { transform-origin: 0 0; animation: bm-open var(--t, 1.3s) cubic-bezier(0.3, 0.1, 0.2, 1) var(--d, 0s) both; }
-@keyframes bm-open { from { transform: scaleY(0); opacity: 0; } 30% { opacity: 1; } to { transform: scaleY(1); opacity: 1; } }
-.bm-shade { fill: rgba(6, 16, 8, 0.32); pointer-events: none; }
-.bm-light { mix-blend-mode: screen; pointer-events: none; transition: opacity 0.25s ease; animation: bm-breathe-light var(--t, 5s) ease-in-out var(--d, 0s) infinite alternate; }
-@keyframes bm-breathe-light { from { opacity: 0.7; } to { opacity: 1; } }
-.bm-hit { fill: transparent; pointer-events: all; }
-.bm:hover .bm-light, .bm:focus-visible .bm-light { animation: none; opacity: 1; filter: url(#bm-blur) brightness(1.5); }
-
-/* the letters: pale gold light, translucent, written one after another */
-.bm-ch { opacity: 0; animation: bm-letter var(--t, 0.45s) ease-out var(--d, 0s) both; filter: drop-shadow(0 0 6px rgba(255, 211, 110, 0.75)); transition: filter 0.25s ease; }
-@keyframes bm-letter { from { opacity: 0; } to { opacity: 1; } }
-.bm-glyph { fill: #fffbe8; fill-opacity: 0.74; font-family: Georgia, serif; font-weight: 700; letter-spacing: 0.06em; paint-order: stroke; stroke: rgba(60, 35, 5, 0.35); stroke-width: 1px; stroke-linejoin: round; user-select: none; transition: fill-opacity 0.25s ease; }
-.bm:hover .bm-glyph, .bm:focus-visible .bm-glyph { fill-opacity: 1; }
-.bm:hover .bm-ch, .bm:focus-visible .bm-ch { filter: drop-shadow(0 0 10px rgba(255, 233, 160, 1)); }
-.bm:focus-visible .bm-hit { stroke: #fff2c0; stroke-width: 3; stroke-linejoin: round; }
-
-/* fireflies and falling leaves */
-.bm-fly { fill: #fff6cf; opacity: 0; filter: drop-shadow(0 0 5px #ffe58a); mix-blend-mode: screen; pointer-events: none; animation: bm-fly var(--t, 8s) ease-in-out var(--d, 0s) infinite; }
-@keyframes bm-fly { 0% { opacity: 0; transform: translate(0, 0); } 20% { opacity: 0.9; } 50% { transform: translate(34px, -90px); } 80% { opacity: 0.8; } 100% { opacity: 0; transform: translate(-20px, -190px); } }
-.bm-fall { opacity: 0; pointer-events: none; animation: bm-fall var(--t, 12s) linear var(--d, 5s) infinite; }
-.bm-leaf { fill: #7fae3b; stroke: #4c7b22; stroke-width: 1.4; opacity: 0.85; }
-@keyframes bm-fall {
-  0% { opacity: 0; transform: translate(var(--x), -20px) rotate(0deg); }
-  8% { opacity: 0.9; }
-  50% { transform: translate(calc(var(--x) + 60px), 700px) rotate(170deg); }
-  92% { opacity: 0.9; }
-  100% { opacity: 0; transform: translate(calc(var(--x) - 30px), 1400px) rotate(340deg); }
+/* ───────── The window of the library, opened: a firefly forest where the tale of the day is told ───────── */
+.fw-backdrop {
+  --w: max(100vw, calc(100vh * var(--asp)));
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  background: #02060d;
+  color: #eaf3ff;
+  animation: hm-fade 0.3s ease both;
 }
+
+/* the room's picture, laid out exactly like the Home's, so that the camera starts where the reader was */
+.fw-room {
+  position: absolute;
+  width: var(--w);
+  height: calc(var(--w) / var(--asp));
+  left: calc((100vw - var(--w)) / 2);
+  top: calc((100vh - var(--w) / var(--asp)) / 2);
+  background-size: 100% 100%;
+  transform-origin: calc(var(--fx) * 100%) calc(var(--fy) * 100%);
+  animation: fw-zoom 3s cubic-bezier(0.6, 0, 0.3, 1) both, fw-roomfade 0.8s ease 2.5s forwards;
+}
+@keyframes fw-zoom {
+  from { transform: scale(1); filter: blur(0) brightness(1); }
+  70% { filter: blur(0.6px) brightness(1.1); }
+  to { transform: scale(var(--z)); filter: blur(4px) brightness(1.7); }
+}
+@keyframes fw-roomfade { to { opacity: 0; visibility: hidden; } }
+
+/* the swirl of light and the flash, centred on the stained-glass window */
+.fw-swirl, .fw-flash {
+  position: absolute;
+  left: calc((100vw - var(--w)) / 2 + var(--fx) * var(--w));
+  top: calc((100vh - var(--w) / var(--asp)) / 2 + var(--fy) * var(--w) / var(--asp));
+  pointer-events: none;
+}
+.fw-swirl { width: 0; height: 0; }
+.fw-orbit { position: absolute; left: 0; top: 0; animation: fw-orbit var(--t) cubic-bezier(0.4, 0, 0.6, 1) var(--d) both; }
+@keyframes fw-orbit {
+  from { transform: rotate(var(--a)); }
+  to { transform: rotate(calc(var(--a) + var(--turns) * 360deg)); }
+}
+.fw-spark {
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #9dd6ff 40%, rgba(120, 190, 255, 0) 72%);
+  box-shadow: 0 0 10px 2px rgba(150, 210, 255, 0.7);
+  mix-blend-mode: screen;
+  animation: fw-spark var(--t) cubic-bezier(0.5, 0, 0.5, 1) var(--d) both;
+}
+.fw-spark--warm { background: radial-gradient(circle, #fff6cf 0%, #ffcf6a 40%, rgba(255, 190, 80, 0) 72%); box-shadow: 0 0 10px 2px rgba(255, 200, 100, 0.7); }
+@keyframes fw-spark {
+  from { transform: translateX(calc(var(--r) * 1vmin)) scale(0.2); opacity: 0; }
+  18% { opacity: 1; transform: translateX(calc(var(--r) * 0.8vmin)) scale(1); }
+  to { transform: translateX(0) scale(0.4); opacity: 0; }
+}
+.fw-flash {
+  width: 60vmin;
+  height: 60vmin;
+  margin: -30vmin 0 0 -30vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, rgba(165, 218, 255, 0.85) 32%, rgba(120, 190, 255, 0) 70%);
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: fw-flash 1.6s ease-out 2.1s both;
+}
+@keyframes fw-flash {
+  0% { opacity: 0; transform: scale(0.2); }
+  35% { opacity: 1; }
+  100% { opacity: 0; transform: scale(5); }
+}
+
+/* the forest arrives out of the light, then drifts slowly */
+.fw-forest { position: absolute; inset: 0; animation: fw-arrive 2.4s ease-out 2.4s both; }
+@keyframes fw-arrive {
+  from { opacity: 0; transform: scale(1.35); filter: blur(10px) brightness(1.8); }
+  to { opacity: 1; transform: scale(1); filter: none; }
+}
+.fw-forest-img { position: absolute; inset: -4%; background-size: cover; background-position: center; animation: fw-drift 46s ease-in-out 4.8s infinite alternate; }
+@keyframes fw-drift {
+  from { transform: scale(1.03) translate(0, 0); }
+  to { transform: scale(1.12) translate(-1.5%, 1%); }
+}
+.fw-fly {
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: #fff4c6;
+  box-shadow: 0 0 10px 3px rgba(255, 214, 110, 0.8);
+  opacity: 0;
+  pointer-events: none;
+  animation: fw-fly var(--t) ease-in-out var(--d) infinite both;
+}
+@keyframes fw-fly {
+  0% { opacity: 0; transform: translate(0, 0); }
+  25% { opacity: 0.95; }
+  55% { transform: translate(calc(var(--dx) * 1vmin), calc(var(--dy) * -1vmin)); }
+  100% { opacity: 0; transform: translate(calc(var(--dx) * -0.6vmin), calc(var(--dy) * -1.8vmin)); }
+}
+.fw-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(2, 6, 13, 0.9), rgba(2, 6, 13, 0.55) 28%, transparent 56%), radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(2, 6, 13, 0.6));
+  animation: fw-fade 1.4s ease 3.4s both;
+}
+@keyframes fw-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* the tale: title, then one line at a time, then the way on */
+.fw-close { position: fixed; top: 16px; right: 16px; z-index: 3; animation: fw-fade 0.6s ease 0.4s both; }
+.fw-story { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 6vw 6vh; text-align: center; pointer-events: none; z-index: 2; }
+.fw-kicker { margin: 0; font: 600 11px "Cinzel", Georgia, serif; letter-spacing: 0.32em; text-transform: uppercase; color: #9fd0ff; animation: fw-rise 1.2s ease 3.6s both; }
+.fw-title { margin: 6px 0 0; font: 600 clamp(1.4rem, 3.6vw, 2.2rem) / 1.15 Georgia, serif; color: #ffe9b8; text-shadow: 0 2px 14px #000; animation: fw-rise 1.2s ease 3.8s both; }
+.fw-lines { position: relative; max-width: 46rem; min-height: 7.5em; margin: 16px auto 0; font: italic 400 clamp(1.05rem, 2.3vw, 1.45rem) / 1.5 Georgia, serif; text-shadow: 0 2px 12px #000; }
+.fw-line { position: absolute; left: 0; right: 0; top: 0; margin: 0; opacity: 0; animation: fw-line var(--ls) ease var(--d) both; }
+.fw-line--last { animation-name: fw-line-last; }
+@keyframes fw-line {
+  0% { opacity: 0; transform: translateY(8px); }
+  14% { opacity: 1; transform: none; }
+  86% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+@keyframes fw-line-last {
+  0% { opacity: 0; transform: translateY(8px); }
+  14%, 100% { opacity: 1; transform: none; }
+}
+@keyframes fw-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.fw-end { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px; pointer-events: auto; animation: fw-end 1.2s ease var(--d) both; }
+@keyframes fw-end {
+  from { opacity: 0; visibility: hidden; transform: translateY(10px); }
+  1% { visibility: visible; }
+  to { opacity: 1; visibility: visible; transform: none; }
+}
+.fw-btn { padding: 9px 20px; border-radius: 999px; border: 1px solid rgba(190, 220, 255, 0.55); background: rgba(6, 18, 32, 0.6); color: #eaf3ff; font: 600 14px Georgia, serif; cursor: pointer; backdrop-filter: blur(4px); }
+.fw-btn:hover, .fw-btn:focus-visible { outline: none; border-color: #ffe9b8; box-shadow: 0 0 16px rgba(255, 220, 140, 0.55); }
+.fw-btn--main { border-color: #e3b04b; color: #ffe9b8; }
 
 @media (prefers-reduced-motion: reduce) {
-  .bm-cam, .bm-open, .bm-ch, .bm-arch, .tw-arch, .tw-wrap { animation-duration: 0.01s; animation-delay: 0s; }
-  .bm-cam { animation-name: bm-camera; }
-  .bm-light, .bm-flicker { animation: none; opacity: 1; }
-  .bm-flicker { opacity: 0.6; }
-  .bm-fly, .bm-fall { display: none; }
+  .fw-room, .fw-swirl, .fw-flash, .fw-fireflies { display: none; }
+  .fw-forest, .fw-forest-img, .fw-vignette, .fw-close, .fw-kicker, .fw-title, .fw-end { animation: none; }
+  .fw-lines { min-height: 0; }
+  .fw-line { position: static; opacity: 1; animation: none; margin: 0 0 0.6em; }
 }
-:root[data-theme="light"] .tw-wrap, :root[data-theme="light"] .tw-head h2 { color: #ffe9b8; }

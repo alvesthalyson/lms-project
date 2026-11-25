@@ -12,8 +12,7 @@ import { toast } from "@/lib/toast";
 import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
-import { TreeWindow } from "../components/TreeWindow";
-import { landingTimes } from "../components/treeGeometry";
+import { ForestWindow } from "../components/ForestWindow";
 import { HourglassDialog } from "../components/HourglassDialog";
 import { GlobeDialog } from "../globe/GlobeDialog";
 import { AccountBar } from "../components/AccountBar";
@@ -85,8 +84,8 @@ export function HomePage() {
   const closeReveal = useCallback(() => setReveal(null), []);
   const [globeOpen, setGlobeOpen] = useState(false);
   const closeGlobe = useCallback(() => setGlobeOpen(false), []);
-  const [treeOpen, setTreeOpen] = useState(false);
-  const closeTree = useCallback(() => setTreeOpen(false), []);
+  const [forestOpen, setForestOpen] = useState(false);
+  const closeForest = useCallback(() => setForestOpen(false), []);
   const [hourglassOpen, setHourglassOpen] = useState(false);
   const closeHourglass = useCallback(() => setHourglassOpen(false), []);
   // A country was chosen on the globe: close it and open the shelf with that country's books.
@@ -135,12 +134,13 @@ export function HomePage() {
     sfx.openShelf();
     setOpen({ title: t("favorites.title"), kicker: t("favorites.kicker"), query: { favorite: true, page_size: 50, ordering: "title" } });
   };
-  const openTree = (): void => {
-    sfx.bloom(landingTimes(categories.map((category) => catName(category))));
-    setTreeOpen(true);
+  // The stained-glass window: the camera goes through it into a forest where the tale of the day is told.
+  const openForest = (): void => {
+    sfx.portal();
+    setForestOpen(true);
   };
-  const pickFromTree = (category: Category): void => {
-    setTreeOpen(false);
+  const continueTale = (category: Category): void => {
+    setForestOpen(false);
     openCategory(category);
   };
   const openHourglass = (): void => {
@@ -180,7 +180,7 @@ export function HomePage() {
           <SpotButton spot={room.globe} className={shelfClass} onClick={openGlobe} ariaLabel={t("globe.open")} haspopup />
         )}
 
-        {room.tree && <SpotButton spot={room.tree} className={shelfClass} onClick={openTree} ariaLabel={t("tree.open")} haspopup />}
+        {room.tree && <SpotButton spot={room.tree} className={shelfClass} onClick={openForest} ariaLabel={t("forest.open")} haspopup />}
 
         {room.favorites && (
           <SpotButton spot={room.favorites} className={shelfClass} onClick={openFavorites} ariaLabel={t("favorites.open")} haspopup />
@@ -233,8 +233,8 @@ export function HomePage() {
           </button>
         )}
         {room.tree && (
-          <button type="button" className="hm-pill" onClick={openTree} aria-haspopup="dialog">
-            🌳 {t("tree.title")}
+          <button type="button" className="hm-pill" onClick={openForest} aria-haspopup="dialog">
+            🌲 {t("forest.title")}
           </button>
         )}
         {room.favorites && (
@@ -261,7 +261,16 @@ export function HomePage() {
 
       {reveal && <PicksReveal origin={reveal} onClose={closeReveal} />}
       {open && <ShelfInspector target={open} onClose={close} />}
-      {treeOpen && <TreeWindow categories={categories} onPick={pickFromTree} onClose={closeTree} />}
+      {forestOpen && room.tree && (
+        <ForestWindow
+          picture={background}
+          aspect={room.aspect}
+          origin={{ x: room.tree.left + room.tree.width / 2, y: room.tree.top + room.tree.height / 2, r: room.tree.width / 2 }}
+          categories={categories}
+          onOpenCategory={continueTale}
+          onClose={closeForest}
+        />
+      )}
       {hourglassOpen && <HourglassDialog onClose={closeHourglass} />}
       {globeOpen && <GlobeDialog onClose={closeGlobe} onPick={pickCountry} />}
       {/* The Home lives outside AppLayout, so it brings its own toasts (reservation results, errors). */}
