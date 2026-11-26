@@ -7,7 +7,7 @@ import { usePrefs } from "@/lib/i18n/store";
 
 import { ForestWindow } from "./ForestWindow";
 import { POSTER, VIDEO, VIDEO_SECONDS } from "./forestScene";
-import { taleOfTheDay } from "./stories";
+import { STORIES } from "./stories";
 
 const POETRY: Category = { id: 1, name: "Poesia", slug: "poesia" };
 const FANTASY: Category = { id: 2, name: "Fantasia", slug: "fantasia" };
@@ -22,6 +22,7 @@ function show(categories: Category[], props: Partial<{ onOpenCategory: (c: Categ
 afterEach(() => {
   vi.useRealTimers();
   usePrefs.setState({ lang: "pt", sound: false });
+  vi.unstubAllGlobals();
 });
 
 describe("ForestWindow", () => {
@@ -94,30 +95,75 @@ describe("ForestWindow", () => {
     expect(screen.queryByRole("button", { name: "Pular animação" })).toBeNull();
   });
 
-  it("tells the tale of the day, all its lines in order, with its title", () => {
-    const tale = taleOfTheDay(new Date());
+  it("tells the story of the language, its paragraphs in order, under its title", () => {
     const { container } = show([POETRY]);
-    expect(screen.getByRole("heading", { name: tale.title.pt })).toBeInTheDocument();
-    expect([...container.querySelectorAll(".fw-line")].map((p) => p.textContent)).toEqual([...tale.lines.pt]);
-    expect(container.querySelectorAll(".fw-line--last")).toHaveLength(1);
+    expect(screen.getByRole("heading", { name: STORIES.pt.title })).toBeInTheDocument();
+    expect([...container.querySelectorAll(".fw-scroll .fw-line")].map((p) => p.textContent)).toEqual([...STORIES.pt.paragraphs]);
   });
 
-  it("tells it in the reader's language", () => {
-    usePrefs.setState({ lang: "ja" });
-    const tale = taleOfTheDay(new Date());
-    const { container } = show([POETRY]);
-    expect(screen.getByRole("heading", { name: tale.title.ja })).toBeInTheDocument();
-    expect(container.querySelector(".fw-line")?.textContent).toBe(tale.lines.ja[0]);
+  it("tells a different story in English and in Japanese", () => {
+    for (const lang of ["en", "ja"] as const) {
+      usePrefs.setState({ lang });
+      const { container, unmount } = show([POETRY]);
+      expect(screen.getByRole("heading", { name: STORIES[lang].title })).toBeInTheDocument();
+      expect(container.querySelector(".fw-line")?.textContent).toBe(STORIES[lang].paragraphs[0]);
+      unmount();
+    }
   });
 
-  it("ends by offering the shelf of the tale's category, and opens it", async () => {
-    const cat: Category = { id: 9, name: "Outra", slug: taleOfTheDay(new Date()).category };
+  it("makes the text rise for as long as the narrator needs, and the ending comes after it", () => {
+    const { container } = show([POETRY]);
+    const lines = container.querySelector(".fw-lines") as HTMLElement;
+    const end = container.querySelector(".fw-end") as HTMLElement;
+    const seconds = parseFloat(lines.style.getPropertyValue("--ls"));
+    expect(seconds).toBeGreaterThan(20);
+    expect(parseFloat(end.style.getPropertyValue("--d"))).toBeGreaterThan(parseFloat(lines.style.getPropertyValue("--d")) + seconds);
+  });
+
+  it("narrates the story aloud, in the language, once the forest is live and only with sound on", () => {
+    const speak = vi.fn();
+    const cancel = vi.fn();
+    class Utterance {
+      lang = "";
+      rate = 1;
+      pitch = 1;
+      voice: unknown = null;
+      constructor(public text: string) {}
+    }
+    vi.stubGlobal("SpeechSynthesisUtterance", Utterance);
+    vi.stubGlobal("speechSynthesis", { speak, cancel, getVoices: () => [{ name: "Voz", lang: "pt-BR" }], addEventListener: vi.fn(), removeEventListener: vi.fn() });
+
+    const quiet = show([POETRY]);
+    fireEvent.ended(quiet.container.querySelector("video")!);
+    expect(speak).not.toHaveBeenCalled();
+    quiet.unmount();
+
+    usePrefs.setState({ sound: true });
+    const loud = show([POETRY]);
+    expect(speak).not.toHaveBeenCalled(); // the film is still playing
+    fireEvent.ended(loud.container.querySelector("video")!);
+    expect(speak).toHaveBeenCalledTimes(STORIES.pt.paragraphs.length);
+    expect((speak.mock.calls[0]![0] as Utterance).text).toBe(STORIES.pt.paragraphs[0]);
+    expect((speak.mock.calls[0]![0] as Utterance).lang).toBe("pt-BR");
+    cancel.mockClear();
+    loud.unmount();
+    expect(cancel).toHaveBeenCalled(); // closing the window silences the narrator
+  });
+
+  it("does not break in a browser without speech", () => {
+    usePrefs.setState({ sound: true });
+    const { container } = show([POETRY]);
+    expect(() => fireEvent.ended(container.querySelector("video")!)).not.toThrow();
+  });
+
+  it("ends by offering the shelf of the story's category, and opens it", async () => {
+    const cat: Category = { id: 9, name: "Outra", slug: STORIES.pt.category };
     const { onOpenCategory } = show([POETRY, FANTASY, cat]);
     await userEvent.setup().click(screen.getByRole("button", { name: "Continuar a história: estante Outra" }));
     expect(onOpenCategory).toHaveBeenCalledWith(cat);
   });
 
-  it("falls back to another shelf when the library has no shelf for the tale's category", async () => {
+  it("falls back to another shelf when the library has no shelf for the story's category", async () => {
     const odd: Category = { id: 5, name: "Culinária", slug: "culinaria" };
     const { onOpenCategory } = show([odd]);
     const user = userEvent.setup();

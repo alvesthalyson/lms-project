@@ -1,3 +1,5 @@
+import type { Lang } from "@/lib/i18n/dictionaries";
+
 /**
  * The scene of the window onto the firefly forest, as plain data: the timeline and the fireflies. Pure, so it can be
  * tested.
@@ -5,7 +7,7 @@
  * The window opens with a short film of the journey (the library, the camera going up to the stained glass, the
  * glass turning into a swirl of light, a tunnel, a flash, and the forest arriving). When the film ends (or cannot
  * play) the forest is "live": the film fades out into the same forest, the fireflies float, and the tale is told
- * line by line. All the times below are seconds after that moment.
+ * as text that rises. All the times below are seconds after that moment.
  */
 
 /** The film of the journey and its first frame, shown while it loads. */
@@ -22,18 +24,23 @@ export function forestAssets(): { images: string[]; video: string } {
 
 export const TIMES = {
   title: 0.4,
-  firstLine: 1.6,
-  line: 5.2,
+  /** The text starts to rise this long after the forest goes live. */
+  scrollStart: 1.2,
 } as const;
 
-/** When line `i` of the tale appears. */
-export function lineDelay(i: number): number {
-  return Number((TIMES.firstLine + i * TIMES.line).toFixed(2));
+/**
+ * How long the text takes to rise, in seconds: about as long as the narrator takes to say it (a slow, easy pace, and a
+ * breath between paragraphs). Japanese is counted by characters, the other languages by words.
+ */
+export function scrollSeconds(paragraphs: readonly string[], lang: Lang): number {
+  const text = paragraphs.join(" ");
+  const speech = lang === "ja" ? text.replace(/\s/g, "").length / 4.6 : text.split(/\s+/).filter(Boolean).length / 2.1;
+  return Number((speech + paragraphs.length * 0.8).toFixed(1));
 }
 
-/** When the buttons that end the tale appear: a little after its last line. */
-export function endDelay(lines: number): number {
-  return Number((lineDelay(Math.max(lines, 1) - 1) + 3).toFixed(2));
+/** When the buttons that end the story appear: a moment after the text has finished rising. */
+export function endDelay(paragraphs: readonly string[], lang: Lang): number {
+  return Number((TIMES.scrollStart + scrollSeconds(paragraphs, lang) + 1).toFixed(1));
 }
 
 /** Small deterministic generator (mulberry32), so that the scene looks the same on every render. */

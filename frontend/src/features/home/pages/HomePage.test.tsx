@@ -401,7 +401,7 @@ describe("HomePage: the window onto the forest", () => {
     await user.click((await screen.findAllByRole("button", { name: OPEN }))[0]!);
 
     const forest = await screen.findByRole("dialog", { name: "A floresta dos vaga-lumes" });
-    expect(forest.querySelectorAll(".fw-line").length).toBeGreaterThanOrEqual(4);
+    expect(forest.querySelectorAll(".fw-line").length).toBeGreaterThanOrEqual(5);
     await user.click(within(forest).getByRole("button", { name: "Continuar a história: estante Poesia" }));
 
     expect(screen.queryByRole("dialog", { name: "A floresta dos vaga-lumes" })).not.toBeInTheDocument();

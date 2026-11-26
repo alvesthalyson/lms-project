@@ -518,20 +518,14 @@
 .fw-story { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 6vw 6vh; text-align: center; pointer-events: none; z-index: 2; }
 .fw-kicker { margin: 0; font: 600 11px "Cinzel", Georgia, serif; letter-spacing: 0.32em; text-transform: uppercase; color: #9fd0ff; animation: fw-rise 1.2s ease 0.4s both; }
 .fw-title { margin: 6px 0 0; font: 600 clamp(1.4rem, 3.6vw, 2.2rem) / 1.15 Georgia, serif; color: #ffe9b8; text-shadow: 0 2px 14px #000; animation: fw-rise 1.2s ease 0.6s both; }
-.fw-lines { position: relative; max-width: 46rem; min-height: 7.5em; margin: 16px auto 0; font: italic 400 clamp(1.05rem, 2.3vw, 1.45rem) / 1.5 Georgia, serif; text-shadow: 0 2px 12px #000; }
-.fw-line { position: absolute; left: 0; right: 0; top: 0; margin: 0; opacity: 0; animation: fw-line var(--ls) ease var(--d) both; }
-.fw-line--last { animation-name: fw-line-last; }
-@keyframes fw-line {
-  0% { opacity: 0; transform: translateY(8px); }
-  14% { opacity: 1; transform: none; }
-  86% { opacity: 1; transform: none; }
-  100% { opacity: 0; }
+.fw-lines { --view: 34vh; position: relative; height: var(--view); max-width: 46rem; margin: 14px auto 0; overflow: hidden; font: italic 400 clamp(1.05rem, 2.3vw, 1.45rem) / 1.55 Georgia, serif; text-shadow: 0 2px 12px #000; -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 88%, transparent); mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 88%, transparent); }
+/* the text rises like the lines of a tale told aloud, and comes to rest with its last lines in view */
+.fw-scroll { padding-top: var(--view); animation: fw-scroll var(--ls) linear var(--d) both; }
+.fw-line { margin: 0 0 1em; }
+@keyframes fw-scroll {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(-100% + var(--view) * 0.8)); }
 }
-@keyframes fw-line-last {
-  0% { opacity: 0; transform: translateY(8px); }
-  14%, 100% { opacity: 1; transform: none; }
-}
-@keyframes fw-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .fw-end { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 8px; pointer-events: auto; animation: fw-end 1.2s ease var(--d) both; }
 @keyframes fw-end {
   from { opacity: 0; visibility: hidden; transform: translateY(10px); }
@@ -544,12 +538,12 @@
 .fw-btn--main { border-color: #e3b04b; color: #ffe9b8; }
 
 /* the tale and the fireflies wait for the forest to go live */
-.fw-backdrop:not(.fw--live) :is(.fw-kicker, .fw-title, .fw-line, .fw-end, .fw-fly) { animation-play-state: paused; }
+.fw-backdrop:not(.fw--live) :is(.fw-kicker, .fw-title, .fw-scroll, .fw-end, .fw-fly) { animation-play-state: paused; }
 
 @media (prefers-reduced-motion: reduce) {
   .fw-video, .fw-fireflies { display: none; }
   .fw-forest-img, .fw-vignette, .fw-close, .fw-kicker, .fw-title, .fw-end { animation: none; }
   .fw-vignette { opacity: 1; }
-  .fw-lines { min-height: 0; }
-  .fw-line { position: static; opacity: 1; animation: none; margin: 0 0 0.6em; }
+  .fw-lines { height: auto; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+  .fw-scroll { padding-top: 0; animation: none; }
 }

@@ -4,8 +4,9 @@ import type { Category } from "@/features/books/types";
 import { usePrefs } from "@/lib/i18n/store";
 import { useT } from "@/lib/i18n/useT";
 
-import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, lineDelay } from "./forestScene";
-import { dayNumber, taleOfTheDay } from "./stories";
+import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, scrollSeconds } from "./forestScene";
+import { narrate } from "./narration";
+import { storyFor } from "./stories";
 
 interface ForestWindowProps {
   categories: readonly Category[];
@@ -44,11 +45,15 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
     return () => window.clearTimeout(id);
   }, [goLive]);
 
-  const today = useMemo(() => new Date(), []);
-  const tale = taleOfTheDay(today);
-  const lines = tale.lines[lang];
-  // The category of the tale; if the library has no such shelf, another one, so that the tale still leads somewhere.
-  const next = categories.find((category) => category.slug === tale.category) ?? (categories.length > 0 ? categories[dayNumber(today) % categories.length] : undefined);
+  const story = storyFor(lang);
+  const seconds = scrollSeconds(story.paragraphs, lang);
+  // The category of the story; if the library has no such shelf, the first one, so that the story still leads somewhere.
+  const next = categories.find((category) => category.slug === story.category) ?? categories[0];
+  // The narrator begins when the forest is live, and only for a reader who has sound on.
+  useEffect(() => {
+    if (!live || !sound) return undefined;
+    return narrate(story.paragraphs, lang);
+  }, [live, sound, story, lang]);
   const flies = useMemo(() => fireflies(), []);
 
   useEffect(() => {
@@ -96,15 +101,17 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
 
       <div className="fw-story">
         <p className="fw-kicker">{t("forest.kicker")}</p>
-        <h2 className="fw-title">{tale.title[lang]}</h2>
-        <div className="fw-lines">
-          {lines.map((line, i) => (
-            <p key={i} className={i === lines.length - 1 ? "fw-line fw-line--last" : "fw-line"} style={vars({ d: `${lineDelay(i)}s`, ls: `${TIMES.line}s` })}>
-              {line}
-            </p>
-          ))}
+        <h2 className="fw-title">{story.title}</h2>
+        <div className="fw-lines" style={vars({ d: `${TIMES.scrollStart}s`, ls: `${seconds}s` })}>
+          <div className="fw-scroll">
+            {story.paragraphs.map((paragraph, i) => (
+              <p key={i} className="fw-line">
+                {paragraph}
+              </p>
+            ))}
+          </div>
         </div>
-        <div className="fw-end" style={vars({ d: `${endDelay(lines.length)}s` })}>
+        <div className="fw-end" style={vars({ d: `${endDelay(story.paragraphs, lang)}s` })}>
           {next && (
             <button type="button" className="fw-btn fw-btn--main" onClick={() => onOpenCategory(next)}>
               {t("forest.next")} {catName(next)}
