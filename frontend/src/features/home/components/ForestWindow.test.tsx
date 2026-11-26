@@ -21,7 +21,7 @@ function show(categories: Category[], props: Partial<{ onOpenCategory: (c: Categ
 
 afterEach(() => {
   vi.useRealTimers();
-  usePrefs.setState({ lang: "pt" });
+  usePrefs.setState({ lang: "pt", sound: false });
 });
 
 describe("ForestWindow", () => {
@@ -65,6 +65,33 @@ describe("ForestWindow", () => {
     const { container } = show([POETRY]);
     expect(container.querySelector(".fw-backdrop")!.classList.contains("fw--live")).toBe(true);
     vi.unstubAllGlobals();
+  });
+
+  it("plays the film's own sound only when the reader has sound on", () => {
+    const off = show([POETRY]);
+    expect(off.container.querySelector("video")!.muted).toBe(true);
+    off.unmount();
+    usePrefs.setState({ sound: true });
+    const on = show([POETRY]);
+    expect(on.container.querySelector("video")!.muted).toBe(false);
+  });
+
+  it("offers a button to skip the film, which goes live at once and then goes away", async () => {
+    const { container } = show([POETRY]);
+    const video = container.querySelector("video")!;
+    const pause = vi.spyOn(video, "pause").mockImplementation(() => undefined);
+    expect(container.querySelector(".fw--live")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Pular animação" }));
+    expect(pause).toHaveBeenCalled();
+    expect(container.querySelector(".fw--live")).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Pular animação" })).toBeNull();
+  });
+
+  it("has no skip button when the film is skipped by reduced motion", () => {
+    vi.stubGlobal("matchMedia", () => ({ matches: true, addEventListener: () => undefined, removeEventListener: () => undefined }));
+    show([POETRY]);
+    vi.unstubAllGlobals();
+    expect(screen.queryByRole("button", { name: "Pular animação" })).toBeNull();
   });
 
   it("tells the tale of the day, all its lines in order, with its title", () => {

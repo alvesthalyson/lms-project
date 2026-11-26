@@ -540,6 +540,7 @@
 }
 .fw-btn { padding: 9px 20px; border-radius: 999px; border: 1px solid rgba(190, 220, 255, 0.55); background: rgba(6, 18, 32, 0.6); color: #eaf3ff; font: 600 14px Georgia, serif; cursor: pointer; backdrop-filter: blur(4px); }
 .fw-btn:hover, .fw-btn:focus-visible { outline: none; border-color: #ffe9b8; box-shadow: 0 0 16px rgba(255, 220, 140, 0.55); }
+.fw-skip { position: fixed; right: 16px; bottom: 16px; z-index: 3; padding: 7px 16px; font-size: 13px; animation: fw-fade 0.6s ease 0.8s both; }
 .fw-btn--main { border-color: #e3b04b; color: #ffe9b8; }
 
 /* the tale and the fireflies wait for the forest to go live */

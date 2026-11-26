@@ -146,8 +146,7 @@ export function HomePage() {
   };
   // The stained-glass window: the camera goes through it into a forest where the tale of the day is told.
   const openForest = (): void => {
-    sfx.portal();
-    setForestOpen(true);
+    setForestOpen(true); // the film brings its own sound
   };
   const continueTale = (category: Category): void => {
     setForestOpen(false);

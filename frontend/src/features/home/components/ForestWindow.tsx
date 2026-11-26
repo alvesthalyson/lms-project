@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import type { Category } from "@/features/books/types";
+import { usePrefs } from "@/lib/i18n/store";
 import { useT } from "@/lib/i18n/useT";
 
 import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, lineDelay } from "./forestScene";
@@ -26,9 +27,17 @@ function vars(values: Record<string, string | number>): CSSProperties {
 export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWindowProps) {
   const { t, lang, catName } = useT();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  // The film carries its own soundtrack; it is heard only when the reader has sound on.
+  const sound = usePrefs((s) => s.sound);
   // Live: the film is over, the forest breathes and the tale begins. Whoever asks for less motion skips the film.
   const [live, setLive] = useState(() => typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const goLive = useCallback(() => setLive(true), []);
+  // Skipping cuts the film's sound at once; the picture fades out into the forest.
+  const skip = useCallback(() => {
+    videoRef.current?.pause();
+    setLive(true);
+  }, []);
   useEffect(() => {
     // If the film stalls or never plays, the forest goes live anyway a little after it should have ended.
     const id = window.setTimeout(goLive, (VIDEO_SECONDS + 3) * 1000);
@@ -72,12 +81,18 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
         ))}
       </div>
 
-      <video className="fw-video" src={VIDEO} poster={POSTER} muted playsInline autoPlay preload="auto" aria-hidden tabIndex={-1} onEnded={goLive} onError={goLive} />
+      <video ref={videoRef} className="fw-video" src={VIDEO} poster={POSTER} muted={!sound} playsInline autoPlay preload="auto" aria-hidden tabIndex={-1} onEnded={goLive} onError={goLive} />
       <div className="fw-vignette" aria-hidden />
 
       <button ref={closeRef} type="button" className="hm-close fw-close" onClick={onClose} aria-label={t("forest.close")}>
         ×
       </button>
+
+      {!live && (
+        <button type="button" className="fw-btn fw-skip" onClick={skip}>
+          {t("forest.skip")}
+        </button>
+      )}
 
       <div className="fw-story">
         <p className="fw-kicker">{t("forest.kicker")}</p>
