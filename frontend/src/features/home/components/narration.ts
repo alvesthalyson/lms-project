@@ -11,9 +11,9 @@ export function pickVoice(voices: readonly SpeechSynthesisVoice[], lang: Lang): 
 
 /**
  * Reads the story aloud with the browser's own voice, one paragraph at a time (the pause between them is the
- * narrator's breath). Returns a function that stops the narration. Does nothing where the browser has no speech.
+ * narrator's breath). It can begin at a later paragraph (when the sound is turned on halfway through). Returns a function that stops the narration. Does nothing where the browser has no speech.
  */
-export function narrate(paragraphs: readonly string[], lang: Lang): () => void {
+export function narrate(paragraphs: readonly string[], lang: Lang, from = 0): () => void {
   const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
   if (!synth || typeof SpeechSynthesisUtterance === "undefined") return () => undefined;
   let started = false;
@@ -26,7 +26,7 @@ export function narrate(paragraphs: readonly string[], lang: Lang): () => void {
     window.clearTimeout(timer);
     const voice = pickVoice(synth.getVoices(), lang);
     synth.cancel();
-    for (const text of paragraphs) {
+    for (const text of paragraphs.slice(from)) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = voice?.lang ?? TAGS[lang];
       if (voice) utterance.voice = voice;

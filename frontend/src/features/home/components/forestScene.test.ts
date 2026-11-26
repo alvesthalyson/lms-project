@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, forestAssets, scrollSeconds } from "./forestScene";
+import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, forestAssets, paragraphAt, scrollSeconds } from "./forestScene";
 import { STORIES, storyFor } from "./stories";
 
 describe("forest timeline", () => {
@@ -13,6 +13,16 @@ describe("forest timeline", () => {
       expect(endDelay(paragraphs, lang)).toBeGreaterThan(TIMES.scrollStart + seconds);
     }
     expect(scrollSeconds(["a b c d"], "en")).toBeLessThan(scrollSeconds(["a b c d e f g h"], "en"));
+  });
+
+  it("finds the paragraph the narrator should be on, from the first to the end", () => {
+    const { paragraphs } = STORIES.en;
+    expect(paragraphAt(paragraphs, "en", 0)).toBe(0);
+    expect(paragraphAt(paragraphs, "en", TIMES.scrollStart + 1)).toBe(0);
+    const middle = paragraphAt(paragraphs, "en", TIMES.scrollStart + scrollSeconds(paragraphs, "en") / 2);
+    expect(middle).toBeGreaterThan(1);
+    expect(middle).toBeLessThan(paragraphs.length - 1);
+    expect(paragraphAt(paragraphs, "en", 1000)).toBe(paragraphs.length);
   });
 
   it("knows the film, its first frame and the forest, to fetch them ahead of time", () => {

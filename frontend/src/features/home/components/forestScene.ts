@@ -11,7 +11,7 @@ import type { Lang } from "@/lib/i18n/dictionaries";
  */
 
 /** The film of the journey and its first frame, shown while it loads. */
-export const VIDEO = "/transicao-viagem.mp4";
+export const VIDEO = "/transicao-viagem-som.mp4";
 export const POSTER = "/transicao-capa.jpg";
 export const FOREST = "/floresta-vagalumes.jpg";
 /** How long the film lasts, in seconds; if it has not ended a little after that, the forest goes live anyway. */
@@ -36,6 +36,17 @@ export function scrollSeconds(paragraphs: readonly string[], lang: Lang): number
   const text = paragraphs.join(" ");
   const speech = lang === "ja" ? text.replace(/\s/g, "").length / 4.6 : text.split(/\s+/).filter(Boolean).length / 2.1;
   return Number((speech + paragraphs.length * 0.8).toFixed(1));
+}
+
+/** Which paragraph the narrator should be on, `elapsed` seconds after the forest went live (the count when it is over). */
+export function paragraphAt(paragraphs: readonly string[], lang: Lang, elapsed: number): number {
+  const t = Math.max(0, elapsed - TIMES.scrollStart);
+  let end = 0;
+  for (let i = 0; i < paragraphs.length; i += 1) {
+    end += scrollSeconds([paragraphs[i]!], lang);
+    if (t < end) return i;
+  }
+  return paragraphs.length;
 }
 
 /** When the buttons that end the story appear: a moment after the text has finished rising. */

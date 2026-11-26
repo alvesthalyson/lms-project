@@ -4,7 +4,7 @@ import type { Category } from "@/features/books/types";
 import { usePrefs } from "@/lib/i18n/store";
 import { useT } from "@/lib/i18n/useT";
 
-import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, scrollSeconds } from "./forestScene";
+import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, paragraphAt, scrollSeconds } from "./forestScene";
 import { narrate } from "./narration";
 import { storyFor } from "./stories";
 
@@ -31,6 +31,8 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   const videoRef = useRef<HTMLVideoElement>(null);
   // The film carries its own soundtrack; it is heard only when the reader has sound on.
   const sound = usePrefs((s) => s.sound);
+  const setSound = usePrefs((s) => s.setSound);
+  const liveAt = useRef(0);
   // Live: the film is over, the forest breathes and the tale begins. Whoever asks for less motion skips the film.
   const [live, setLive] = useState(() => typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const goLive = useCallback(() => setLive(true), []);
@@ -51,9 +53,21 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   const next = categories.find((category) => category.slug === story.category) ?? categories[0];
   // The narrator begins when the forest is live, and only for a reader who has sound on.
   useEffect(() => {
+    if (live && liveAt.current === 0) liveAt.current = Date.now();
+  }, [live]);
+  // The sound can be turned on halfway through: the narrator then joins in where the text is, not from the start.
+  useEffect(() => {
     if (!live || !sound) return undefined;
-    return narrate(story.paragraphs, lang);
+    const from = paragraphAt(story.paragraphs, lang, (Date.now() - liveAt.current) / 1000);
+    return narrate(story.paragraphs, lang, from);
   }, [live, sound, story, lang]);
+  // The film's own sound follows the same switch, and starts if the browser had held it back.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !sound;
+    if (sound && !video.ended && video.paused && !live) void video.play?.()?.catch?.(() => undefined);
+  }, [sound, live]);
   const flies = useMemo(() => fireflies(), []);
 
   useEffect(() => {
@@ -91,6 +105,10 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
 
       <button ref={closeRef} type="button" className="hm-close fw-close" onClick={onClose} aria-label={t("forest.close")}>
         ×
+      </button>
+
+      <button type="button" className={sound ? "fw-btn fw-sound" : "fw-btn fw-sound fw-sound--off"} onClick={() => setSound(!sound)} aria-pressed={sound}>
+        <span aria-hidden>{sound ? "🔊" : "🔇"}</span> {t(sound ? "forest.soundOff" : "forest.soundOn")}
       </button>
 
       {!live && (

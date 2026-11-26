@@ -77,6 +77,18 @@ describe("ForestWindow", () => {
     expect(on.container.querySelector("video")!.muted).toBe(false);
   });
 
+  it("has its own sound switch, since the Home's is hidden behind the window", async () => {
+    const { container } = show([POETRY]);
+    const video = container.querySelector("video")!;
+    expect(video.muted).toBe(true);
+    await userEvent.click(screen.getByRole("button", { name: /Ligar o som e a narração/ }));
+    expect(usePrefs.getState().sound).toBe(true);
+    expect(video.muted).toBe(false);
+    await userEvent.click(screen.getByRole("button", { name: /Desligar o som/ }));
+    expect(usePrefs.getState().sound).toBe(false);
+    expect(video.muted).toBe(true);
+  });
+
   it("offers a button to skip the film, which goes live at once and then goes away", async () => {
     const { container } = show([POETRY]);
     const video = container.querySelector("video")!;
