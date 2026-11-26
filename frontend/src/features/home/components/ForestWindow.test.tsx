@@ -151,12 +151,23 @@ describe("ForestWindow", () => {
     quiet.unmount();
 
     usePrefs.setState({ sound: true });
+    vi.useFakeTimers();
     const loud = show([POETRY]);
     expect(speak).not.toHaveBeenCalled(); // the film is still playing
-    fireEvent.ended(loud.container.querySelector("video")!);
-    expect(speak).toHaveBeenCalledTimes(STORIES.pt.paragraphs.length);
-    expect((speak.mock.calls[0]![0] as Utterance).text).toBe(STORIES.pt.paragraphs[0]);
-    expect((speak.mock.calls[0]![0] as Utterance).lang).toBe("pt-BR");
+    act(() => {
+      fireEvent.ended(loud.container.querySelector("video")!);
+    });
+    // the narrator says one sentence at a time, and breathes before the next
+    expect(speak).toHaveBeenCalledTimes(1);
+    const first = speak.mock.calls[0]![0] as Utterance & { onend?: () => void };
+    expect(STORIES.pt.paragraphs[0]!.startsWith(first.text)).toBe(true);
+    expect(first.lang).toBe("pt-BR");
+    expect(first.rate).toBeLessThan(1);
+    act(() => {
+      first.onend?.();
+      vi.advanceTimersByTime(2000);
+    });
+    expect(speak).toHaveBeenCalledTimes(2);
     cancel.mockClear();
     loud.unmount();
     expect(cancel).toHaveBeenCalled(); // closing the window silences the narrator

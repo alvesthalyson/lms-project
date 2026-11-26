@@ -15,6 +15,7 @@ let noise: AudioBuffer | null = null;
 let ambientWanted = false;
 let ambient: { stop: () => void } | null = null;
 let unlockListening = false;
+let lullabyStop: (() => void) | null = null;
 
 const MASTER_VOLUME = 0.8;
 
@@ -72,7 +73,7 @@ function noiseBurst(c: AudioContext, t: number, dur: number, type: BiquadFilterT
 }
 
 /** A pitched note that fades away: bells, thuds. */
-function tone(c: AudioContext, t: number, freq: number, dur: number, peak: number, endFreq = freq, type: OscillatorType = "sine"): void {
+function tone(c: AudioContext, t: number, freq: number, dur: number, peak: number, endFreq = freq, type: OscillatorType = "sine", out?: AudioNode): void {
   const osc = c.createOscillator();
   osc.type = type;
   osc.frequency.setValueAtTime(freq, t);
@@ -81,7 +82,21 @@ function tone(c: AudioContext, t: number, freq: number, dur: number, peak: numbe
   gain.gain.setValueAtTime(0.0001, t);
   gain.gain.linearRampToValueAtTime(peak, t + 0.008);
   gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  osc.connect(gain).connect(master!);
+  osc.connect(gain).connect(out ?? master!);
+  osc.start(t);
+  osc.stop(t + dur + 0.05);
+}
+
+/** A held, soft note that swells in and out slowly: the pad under the lullaby. */
+function pad(c: AudioContext, t: number, freq: number, dur: number, peak: number, out: AudioNode): void {
+  const osc = c.createOscillator();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(freq, t);
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.linearRampToValueAtTime(peak, t + dur * 0.35);
+  gain.gain.linearRampToValueAtTime(0.0001, t + dur);
+  osc.connect(gain).connect(out);
   osc.start(t);
   osc.stop(t + dur + 0.05);
 }
@@ -252,6 +267,7 @@ export function setSoundEnabled(on: boolean): void {
   if (!on) {
     ambient?.stop();
     ambient = null;
+    lullabyStop?.();
     return;
   }
   context();
@@ -308,4 +324,73 @@ export function portal(): void {
   tone(c, t + 0.2, 110, 2.8, 0.05, 220);
   scale.forEach((freq, i) => tone(c, t + 0.9 + i * 0.22, freq, 1.2, 0.04));
   noiseBurst(c, t + 2.2, 1.8, "highpass", 5000, 2200, 0.7, 0.03, 0.2);
+}
+
+// ── the lullaby ───────────────────────────────────────────────────────────────────────────────────────
+
+/** Four slow chords (A minor, F, C, G): the three notes of each, low, and the same three an octave or two higher. */
+const LULLABY_CHORDS = [
+  [110, 164.81, 220],
+  [87.31, 130.81, 174.61],
+  [130.81, 196, 261.63],
+  [98, 146.83, 196],
+];
+const LULLABY_BAR = 8;
+const LULLABY_STEP = LULLABY_BAR / 6;
+const LULLABY_ARPEGGIO = [0, 1, 2, 1, 2, 1];
+
+/**
+ * A soft, low melody for the background while a story is told: a pad of slow chords under a music box that picks out
+ * their notes, now and then leaving a gap, like someone humming. It fades in, and fades out when stopped. Returns the
+ * function that stops it; with sound off it does nothing.
+ */
+export function lullaby(): () => void {
+  const c = context();
+  if (!c) return () => undefined;
+  lullabyStop?.();
+  const bus = c.createGain();
+  bus.gain.setValueAtTime(0.0001, c.currentTime);
+  bus.gain.linearRampToValueAtTime(1, c.currentTime + 4);
+  bus.connect(master!);
+
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let bar = 0;
+  let nextBar = c.currentTime + 0.3;
+
+  const schedule = (): void => {
+    if (stopped) return;
+    while (nextBar < c.currentTime + 4) {
+      const chord = LULLABY_CHORDS[bar % LULLABY_CHORDS.length]!;
+      for (const freq of chord) pad(c, nextBar, freq, LULLABY_BAR + 2, 0.016, bus);
+      LULLABY_ARPEGGIO.forEach((index, i) => {
+        if (Math.random() < 0.22) return; // a rest
+        const freq = chord[index]! * (i % 3 === 2 ? 4 : 2);
+        const at = nextBar + i * LULLABY_STEP + rand(0, 0.08);
+        tone(c, at, freq, 2.6, 0.02, freq, "sine", bus);
+        tone(c, at, freq * 2.76, 1.2, 0.004, freq * 2.76, "sine", bus); // a little bell in the note
+      });
+      bar += 1;
+      nextBar += LULLABY_BAR;
+    }
+    timer = setTimeout(schedule, 1000);
+  };
+  schedule();
+
+  const stop = (): void => {
+    if (stopped) return;
+    stopped = true;
+    clearTimeout(timer);
+    if (lullabyStop === stop) lullabyStop = null;
+    try {
+      bus.gain.cancelScheduledValues(c.currentTime);
+      bus.gain.setValueAtTime(bus.gain.value, c.currentTime);
+      bus.gain.linearRampToValueAtTime(0.0001, c.currentTime + 1.5);
+    } catch {
+      /* the context may already be closed */
+    }
+    setTimeout(() => bus.disconnect(), 2500);
+  };
+  lullabyStop = stop;
+  return stop;
 }

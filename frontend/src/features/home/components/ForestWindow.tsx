@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 
 import type { Category } from "@/features/books/types";
 import { usePrefs } from "@/lib/i18n/store";
+import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
 import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, paragraphAt, scrollSeconds } from "./forestScene";
@@ -59,8 +60,14 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   useEffect(() => {
     if (!live || !sound) return undefined;
     const from = paragraphAt(story.paragraphs, lang, (Date.now() - liveAt.current) / 1000);
-    return narrate(story.paragraphs, lang, from);
+    const stopNarration = narrate(story.paragraphs, lang, from);
+    return stopNarration;
   }, [live, sound, story, lang]);
+  // Under the narrator, a soft melody hums from the moment the story begins.
+  useEffect(() => {
+    if (!live || !sound) return undefined;
+    return sfx.lullaby();
+  }, [live, sound]);
   // The film's own sound follows the same switch, and starts if the browser had held it back.
   useEffect(() => {
     const video = videoRef.current;

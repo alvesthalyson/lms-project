@@ -9,7 +9,7 @@ describe("forest timeline", () => {
       const { paragraphs } = STORIES[lang];
       const seconds = scrollSeconds(paragraphs, lang);
       expect(seconds).toBeGreaterThan(25);
-      expect(seconds).toBeLessThan(120);
+      expect(seconds).toBeLessThan(160);
       expect(endDelay(paragraphs, lang)).toBeGreaterThan(TIMES.scrollStart + seconds);
     }
     expect(scrollSeconds(["a b c d"], "en")).toBeLessThan(scrollSeconds(["a b c d e f g h"], "en"));

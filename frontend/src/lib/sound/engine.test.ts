@@ -182,4 +182,35 @@ describe("rose sound", () => {
     expect(made.oscillators).toBe(1 + 9); // the swell and the notes
     expect(made.sources).toBe(2); // the whoosh and the shimmer
   });
+
+  it("hums a lullaby in the background that fades in, goes on scheduling, and stops; silent when off", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("AudioContext", FakeAudioContext);
+    const sfx = await freshEngine();
+    const idle = sfx.lullaby();
+    expect(made.contexts).toBe(0);
+    idle();
+    sfx.setSoundEnabled(true);
+    const stop = sfx.lullaby();
+    expect(made.oscillators).toBeGreaterThanOrEqual(3 + 6); // the first chord's pad, and most of its notes
+    const first = made.oscillators;
+    vi.advanceTimersByTime(3000); // the next bar is scheduled as it comes within reach
+    expect(made.oscillators).toBeGreaterThan(first);
+    stop();
+    const stopped = made.oscillators;
+    vi.advanceTimersByTime(20000);
+    expect(made.oscillators).toBe(stopped);
+  });
+
+  it("stops the lullaby when the sound is turned off", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("AudioContext", FakeAudioContext);
+    const sfx = await freshEngine();
+    sfx.setSoundEnabled(true);
+    sfx.lullaby();
+    sfx.setSoundEnabled(false);
+    const count = made.oscillators;
+    vi.advanceTimersByTime(20000);
+    expect(made.oscillators).toBe(count);
+  });
 });

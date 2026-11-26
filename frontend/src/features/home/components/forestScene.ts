@@ -1,5 +1,7 @@
 import type { Lang } from "@/lib/i18n/dictionaries";
 
+import { chunksOf } from "./narration";
+
 /**
  * The scene of the window onto the firefly forest, as plain data: the timeline and the fireflies. Pure, so it can be
  * tested.
@@ -30,12 +32,13 @@ export const TIMES = {
 
 /**
  * How long the text takes to rise, in seconds: about as long as the narrator takes to say it (a slow, easy pace, and a
- * breath between paragraphs). Japanese is counted by characters, the other languages by words.
+ * breath after each sentence). Japanese is counted by characters, the other languages by words.
  */
 export function scrollSeconds(paragraphs: readonly string[], lang: Lang): number {
   const text = paragraphs.join(" ");
   const speech = lang === "ja" ? text.replace(/\s/g, "").length / 4.6 : text.split(/\s+/).filter(Boolean).length / 2.1;
-  return Number((speech + paragraphs.length * 0.8).toFixed(1));
+  const breaths = chunksOf(paragraphs).reduce((sum, chunk) => sum + chunk.pause, 0) / 1000; // the narrator's pauses
+  return Number((speech + breaths).toFixed(1));
 }
 
 /** Which paragraph the narrator should be on, `elapsed` seconds after the forest went live (the count when it is over). */
