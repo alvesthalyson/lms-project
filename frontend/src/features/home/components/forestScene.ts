@@ -1,41 +1,30 @@
 /**
- * The scene of the window onto the firefly forest, as plain data: the timeline, the sparks of the swirl and the
- * fireflies. Pure, so it can be tested.
+ * The scene of the window onto the firefly forest, as plain data: the timeline and the fireflies. Pure, so it can be
+ * tested.
  *
- * Timeline (seconds after the window opens): the frames of the journey (the library, the camera going up to the
- * stained glass, the glass turning into a swirl of light, a tunnel, the forest) melt into one another; sparks swirl
- * in, a flash whites everything out, the forest in full resolution arrives out of the light, then the title and the
- * tale, one line at a time, and at the end the way back to the shelves.
+ * The window opens with a short film of the journey (the library, the camera going up to the stained glass, the
+ * glass turning into a swirl of light, a tunnel, a flash, and the forest arriving). When the film ends (or cannot
+ * play) the forest is "live": the film fades out into the same forest, the fireflies float, and the tale is told
+ * line by line. All the times below are seconds after that moment.
  */
 
-/** The frames of the journey, in order: `/transicao/f1.jpg` ... `/transicao/f9.jpg`. */
-export const FRAMES = 9;
+/** The film of the journey and its first frame, shown while it loads. */
+export const VIDEO = "/transicao-viagem.mp4";
+export const POSTER = "/transicao-capa.jpg";
 export const FOREST = "/floresta-vagalumes.jpg";
-
-export function frameUrl(i: number): string {
-  return `/transicao/f${i + 1}.jpg`;
-}
+/** How long the film lasts, in seconds; if it has not ended a little after that, the forest goes live anyway. */
+export const VIDEO_SECONDS = 5.8;
 
 /** Everything the window shows, so that it can be fetched before the reader opens it. */
-export function forestAssets(): string[] {
-  return [...Array.from({ length: FRAMES }, (_, i) => frameUrl(i)), FOREST];
+export function forestAssets(): { images: string[]; video: string } {
+  return { images: [POSTER, FOREST], video: VIDEO };
 }
 
 export const TIMES = {
-  /** Seconds between one frame starting to melt in and the next. */
-  frame: 0.62,
-  swirlStart: 2,
-  flash: 4.5,
-  arrive: 5,
-  title: 6.6,
-  firstLine: 7.6,
+  title: 0.4,
+  firstLine: 1.6,
   line: 5.2,
 } as const;
-
-/** When frame `i` starts to melt in. */
-export function frameDelay(i: number): number {
-  return Number((i * TIMES.frame).toFixed(2));
-}
 
 /** When line `i` of the tale appears. */
 export function lineDelay(i: number): number {
@@ -59,39 +48,6 @@ function rng(seed: number): () => number {
   };
 }
 
-export interface Spark {
-  id: number;
-  /** Starting angle (degrees) and how many turns it makes while it spirals in. */
-  angle: number;
-  turns: number;
-  /** Starting distance from the centre of the glass, in vmin. */
-  radius: number;
-  delay: number;
-  dur: number;
-  /** Size in px. */
-  size: number;
-  /** Gold instead of icy blue. */
-  warm: boolean;
-}
-
-/** The sparks that swirl into the stained glass. They all arrive before the flash is over. */
-export function swirl(count = 64): Spark[] {
-  const r = rng(7);
-  return Array.from({ length: count }, (_, id) => {
-    const delay = TIMES.swirlStart + r() * 1.4;
-    return {
-      id,
-      angle: Math.round(r() * 360),
-      turns: Number((1.1 + r() * 0.9).toFixed(2)),
-      radius: Math.round(30 + r() * 34),
-      delay: Number(delay.toFixed(2)),
-      dur: Number((1.3 + r() * 0.6).toFixed(2)),
-      size: Math.round(3 + r() * 5),
-      warm: r() < 0.35,
-    };
-  });
-}
-
 export interface Firefly {
   id: number;
   /** Position, in percent of the screen. */
@@ -105,7 +61,7 @@ export interface Firefly {
   dy: number;
 }
 
-/** The fireflies that float in the forest once it has arrived. */
+/** The fireflies that float in the forest once it is live. */
 export function fireflies(count = 22): Firefly[] {
   const r = rng(11);
   return Array.from({ length: count }, (_, id) => ({
@@ -113,7 +69,7 @@ export function fireflies(count = 22): Firefly[] {
     x: Math.round(3 + r() * 94),
     y: Math.round(30 + r() * 65),
     size: Math.round(3 + r() * 4),
-    delay: Number((TIMES.arrive + 0.6 + r() * 5).toFixed(2)),
+    delay: Number((0.3 + r() * 4).toFixed(2)),
     dur: Number((6 + r() * 5).toFixed(2)),
     dx: Math.round(-12 + r() * 24),
     dy: Math.round(8 + r() * 14),

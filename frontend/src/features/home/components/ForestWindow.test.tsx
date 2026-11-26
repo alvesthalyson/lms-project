@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -6,7 +6,7 @@ import type { Category } from "@/features/books/types";
 import { usePrefs } from "@/lib/i18n/store";
 
 import { ForestWindow } from "./ForestWindow";
-import { FRAMES } from "./forestScene";
+import { POSTER, VIDEO, VIDEO_SECONDS } from "./forestScene";
 import { taleOfTheDay } from "./stories";
 
 const POETRY: Category = { id: 1, name: "Poesia", slug: "poesia" };
@@ -20,21 +20,51 @@ function show(categories: Category[], props: Partial<{ onOpenCategory: (c: Categ
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   usePrefs.setState({ lang: "pt" });
 });
 
 describe("ForestWindow", () => {
-  it("is a dialog that holds the forest picture and, under it, every frame of the journey in order", () => {
+  it("is a dialog that holds the forest picture, with the film of the journey over it", () => {
     const { container } = show([POETRY]);
     expect(screen.getByRole("dialog", { name: "A floresta dos vaga-lumes" })).toBeInTheDocument();
     expect((container.querySelector(".fw-forest-img") as HTMLElement).style.backgroundImage).toContain("/floresta-vagalumes.jpg");
-    const frames = [...container.querySelectorAll<HTMLImageElement>(".fw-frame")];
-    expect(frames.map((img) => img.getAttribute("src"))).toEqual(Array.from({ length: FRAMES }, (_, i) => `/transicao/f${i + 1}.jpg`));
-    const delays = frames.map((img) => Number(img.style.getPropertyValue("--d").replace("s", "")));
-    for (let i = 1; i < delays.length; i += 1) expect(delays[i]!).toBeGreaterThan(delays[i - 1]!);
-    // the forest is above the journey, so that it can arrive out of the light
+    const video = container.querySelector("video")!;
+    expect(video.getAttribute("src")).toBe(VIDEO);
+    expect(video.getAttribute("poster")).toBe(POSTER);
+    expect(video.muted).toBe(true);
+    expect(video.hasAttribute("autoplay")).toBe(true);
+    expect(video.hasAttribute("playsinline")).toBe(true);
+    // the film is above the forest, so that it can fade out into it
     const order = [...container.querySelector(".fw-backdrop")!.children].map((el) => el.className);
-    expect(order.indexOf("fw-forest")).toBeGreaterThan(order.indexOf("fw-journey"));
+    expect(order.indexOf("fw-video")).toBeGreaterThan(order.indexOf("fw-forest"));
+  });
+
+  it("goes live when the film ends, when it fails to play, and after a while if it stalls", () => {
+    vi.useFakeTimers();
+    const first = show([POETRY]);
+    const backdrop = () => first.container.querySelector(".fw-backdrop")!;
+    expect(backdrop().classList.contains("fw--live")).toBe(false);
+    fireEvent.ended(first.container.querySelector("video")!);
+    expect(backdrop().classList.contains("fw--live")).toBe(true);
+    first.unmount();
+
+    const second = show([POETRY]);
+    fireEvent.error(second.container.querySelector("video")!);
+    expect(second.container.querySelector(".fw-backdrop")!.classList.contains("fw--live")).toBe(true);
+    second.unmount();
+
+    const third = show([POETRY]);
+    expect(third.container.querySelector(".fw-backdrop")!.classList.contains("fw--live")).toBe(false);
+    act(() => void vi.advanceTimersByTime((VIDEO_SECONDS + 3) * 1000 + 50));
+    expect(third.container.querySelector(".fw-backdrop")!.classList.contains("fw--live")).toBe(true);
+  });
+
+  it("skips the film for whoever asks for less motion", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("reduce"), media: query, addEventListener: vi.fn(), removeEventListener: vi.fn(), addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn(), onchange: null }));
+    const { container } = show([POETRY]);
+    expect(container.querySelector(".fw-backdrop")!.classList.contains("fw--live")).toBe(true);
+    vi.unstubAllGlobals();
   });
 
   it("tells the tale of the day, all its lines in order, with its title", () => {
@@ -83,10 +113,8 @@ describe("ForestWindow", () => {
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it("brings the scene to life: a swirl of sparks, a flash and fireflies", () => {
+  it("fills the forest with fireflies", () => {
     const { container } = show([POETRY]);
-    expect(container.querySelectorAll(".fw-spark").length).toBeGreaterThanOrEqual(40);
-    expect(container.querySelector(".fw-flash")).not.toBeNull();
     expect(container.querySelectorAll(".fw-fly").length).toBeGreaterThanOrEqual(15);
   });
 });

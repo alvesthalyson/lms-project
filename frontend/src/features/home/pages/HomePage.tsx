@@ -109,7 +109,9 @@ export function HomePage() {
   const hasWindow = HOME_ROOMS[roomId].tree !== undefined;
   useEffect(() => {
     if (!hasWindow) return;
-    for (const src of forestAssets()) new Image().src = src;
+    const { images, video } = forestAssets();
+    for (const src of images) new Image().src = src;
+    if (typeof fetch === "function") fetch(video).catch(() => undefined);
   }, [hasWindow]);
 
   const theme = usePrefs((s) => s.theme);
