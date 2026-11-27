@@ -13,11 +13,12 @@
       powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step demo  # demo accounts + sample loans
       powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step shelf # Bookshelf novels + covers from Open Library
       powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step world # famous books of 7 countries + cover clean-up (internet)
+      powershell -ExecutionPolicy Bypass -File scripts\sprint0.ps1 -Step narration # recorded narration of the forest stories (neural voices, internet)
 
   It stops at the first failing step and says which one it was. Details: docs\SPRINT0.md
 #>
 param(
-  [ValidateSet("all", "backend", "frontend", "run", "demo", "shelf", "world")]
+  [ValidateSet("all", "backend", "frontend", "run", "demo", "shelf", "world", "narration")]
   [string]$Step = "all"
 )
 
@@ -187,6 +188,14 @@ function Invoke-World {
   } finally { Pop-Location }
 }
 
+function Invoke-Narration {
+  Write-Step "recorded narration of the forest stories (pt, en, ja) with neural voices (needs internet)"
+  if (-not (Test-Path $VenvPython)) { throw "Run the backend step first: scripts\sprint0.ps1 -Step backend" }
+  Invoke-Native $VenvPython @("-m", "pip", "install", "edge-tts", "mutagen")
+  Invoke-Native $VenvPython @((Join-Path $Root "scripts\narracao.py"))
+  Write-Host "Commit the new files: git add frontend/public/narracao; git commit -m 'feat: narracao gravada'; git push"
+}
+
 function Start-Servers {
   Write-Step "start the backend (http://localhost:8000) and the frontend (http://localhost:5173)"
   if (-not (Test-Path $VenvPython)) { throw "Run the backend step first: scripts\sprint0.ps1 -Step backend" }
@@ -204,6 +213,7 @@ try {
     "demo"     { Invoke-DemoUsers; return }
     "shelf"    { Invoke-Shelf; return }
     "world"    { Invoke-World; return }
+    "narration" { Invoke-Narration; return }
     default    { Test-Prerequisites; Invoke-Backend; Invoke-Frontend }
   }
   Write-Host ""

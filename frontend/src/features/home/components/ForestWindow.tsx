@@ -6,7 +6,7 @@ import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
 import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, paragraphAt, scrollSeconds } from "./forestScene";
-import { narrate } from "./narration";
+import { loadManifest, narrate, type Manifest } from "./narration";
 import { storyFor } from "./stories";
 
 interface ForestWindowProps {
@@ -49,7 +49,19 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   }, [goLive]);
 
   const story = storyFor(lang);
-  const seconds = scrollSeconds(story.paragraphs, lang);
+  // The recorded narration, if it has been generated: it sets how long the text takes to rise.
+  const [recorded, setRecorded] = useState<{ lang: string; manifest: Manifest } | null>(null);
+  useEffect(() => {
+    let current = true;
+    void loadManifest(lang).then((manifest) => {
+      if (current && manifest && manifest.clips.length === story.paragraphs.length) setRecorded({ lang, manifest });
+    });
+    return () => {
+      current = false;
+    };
+  }, [lang, story]);
+  const manifest = recorded?.lang === lang ? recorded.manifest : null;
+  const seconds = scrollSeconds(story.paragraphs, lang, manifest);
   // The category of the story; if the library has no such shelf, the first one, so that the story still leads somewhere.
   const next = categories.find((category) => category.slug === story.category) ?? categories[0];
   // The narrator begins when the forest is live, and only for a reader who has sound on.
@@ -59,10 +71,12 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   // The sound can be turned on halfway through: the narrator then joins in where the text is, not from the start.
   useEffect(() => {
     if (!live || !sound) return undefined;
-    const from = paragraphAt(story.paragraphs, lang, (Date.now() - liveAt.current) / 1000);
-    const stopNarration = narrate(story.paragraphs, lang, from);
-    return stopNarration;
-  }, [live, sound, story, lang]);
+    const elapsed = (Date.now() - liveAt.current) / 1000;
+    const from = paragraphAt(story.paragraphs, lang, elapsed, manifest);
+    // At the very start the voice waits for the text to begin to rise; later it joins in at once.
+    const delay = from === 0 ? Math.max(0, TIMES.scrollStart - elapsed) * 1000 : 0;
+    return narrate(story.paragraphs, lang, { from, delay, manifest });
+  }, [live, sound, story, lang, manifest]);
   // Under the narrator, a soft melody hums from the moment the story begins.
   useEffect(() => {
     if (!live || !sound) return undefined;
@@ -136,7 +150,7 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
             ))}
           </div>
         </div>
-        <div className="fw-end" style={vars({ d: `${endDelay(story.paragraphs, lang)}s` })}>
+        <div className="fw-end" style={vars({ d: `${endDelay(story.paragraphs, lang, manifest)}s` })}>
           {next && (
             <button type="button" className="fw-btn fw-btn--main" onClick={() => onOpenCategory(next)}>
               {t("forest.next")} {catName(next)}

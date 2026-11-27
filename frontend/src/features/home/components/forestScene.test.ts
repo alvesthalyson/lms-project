@@ -15,6 +15,14 @@ describe("forest timeline", () => {
     expect(scrollSeconds(["a b c d"], "en")).toBeLessThan(scrollSeconds(["a b c d e f g h"], "en"));
   });
 
+  it("takes its length from the recorded narration when there is one", () => {
+    const manifest = { pause: 1, clips: [{ file: "a", seconds: 30 }, { file: "b", seconds: 40 }] };
+    const paragraphs = STORIES.pt.paragraphs.slice(0, 2);
+    expect(scrollSeconds(paragraphs, "pt", manifest)).toBe(71);
+    expect(endDelay(paragraphs, "pt", manifest)).toBeCloseTo(TIMES.scrollStart + 72, 5);
+    expect(paragraphAt(paragraphs, "pt", TIMES.scrollStart + 31.5, manifest)).toBe(1);
+  });
+
   it("finds the paragraph the narrator should be on, from the first to the end", () => {
     const { paragraphs } = STORIES.en;
     expect(paragraphAt(paragraphs, "en", 0)).toBe(0);

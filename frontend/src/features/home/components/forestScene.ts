@@ -1,6 +1,6 @@
 import type { Lang } from "@/lib/i18n/dictionaries";
 
-import { chunksOf } from "./narration";
+import { chunksOf, clipAt, manifestSeconds, type Manifest } from "./narration";
 
 /**
  * The scene of the window onto the firefly forest, as plain data: the timeline and the fireflies. Pure, so it can be
@@ -34,7 +34,8 @@ export const TIMES = {
  * How long the text takes to rise, in seconds: about as long as the narrator takes to say it (a slow, easy pace, and a
  * breath after each sentence). Japanese is counted by characters, the other languages by words.
  */
-export function scrollSeconds(paragraphs: readonly string[], lang: Lang): number {
+export function scrollSeconds(paragraphs: readonly string[], lang: Lang, manifest?: Manifest | null): number {
+  if (manifest) return manifestSeconds(manifest); // the recorded voice says how long it takes
   const text = paragraphs.join(" ");
   const speech = lang === "ja" ? text.replace(/\s/g, "").length / 4.6 : text.split(/\s+/).filter(Boolean).length / 2.1;
   const breaths = chunksOf(paragraphs).reduce((sum, chunk) => sum + chunk.pause, 0) / 1000; // the narrator's pauses
@@ -42,8 +43,9 @@ export function scrollSeconds(paragraphs: readonly string[], lang: Lang): number
 }
 
 /** Which paragraph the narrator should be on, `elapsed` seconds after the forest went live (the count when it is over). */
-export function paragraphAt(paragraphs: readonly string[], lang: Lang, elapsed: number): number {
+export function paragraphAt(paragraphs: readonly string[], lang: Lang, elapsed: number, manifest?: Manifest | null): number {
   const t = Math.max(0, elapsed - TIMES.scrollStart);
+  if (manifest) return clipAt(manifest, t);
   let end = 0;
   for (let i = 0; i < paragraphs.length; i += 1) {
     end += scrollSeconds([paragraphs[i]!], lang);
@@ -53,8 +55,8 @@ export function paragraphAt(paragraphs: readonly string[], lang: Lang, elapsed: 
 }
 
 /** When the buttons that end the story appear: a moment after the text has finished rising. */
-export function endDelay(paragraphs: readonly string[], lang: Lang): number {
-  return Number((TIMES.scrollStart + scrollSeconds(paragraphs, lang) + 1).toFixed(1));
+export function endDelay(paragraphs: readonly string[], lang: Lang, manifest?: Manifest | null): number {
+  return Number((TIMES.scrollStart + scrollSeconds(paragraphs, lang, manifest) + 1).toFixed(1));
 }
 
 /** Small deterministic generator (mulberry32), so that the scene looks the same on every render. */

@@ -54,10 +54,10 @@ export function chunksOf(paragraphs: readonly string[]): Chunk[] {
 
 /**
  * Reads the story aloud with the browser's own voice, sentence by sentence, breathing between them, a little slower
- * and lower than usual, with a lift at questions. It can begin at a later paragraph (when the sound is turned on
- * halfway through). Returns a function that stops the narration. Does nothing where the browser has no speech.
+ * and lower than usual, with a lift at questions. This is the fallback for when there is no recorded narration. It
+ * can begin at a later paragraph. Returns a function that stops it. Does nothing where the browser has no speech.
  */
-export function narrate(paragraphs: readonly string[], lang: Lang, from = 0): () => void {
+export function speak(paragraphs: readonly string[], lang: Lang, from = 0): () => void {
   const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
   if (!synth || typeof SpeechSynthesisUtterance === "undefined") return () => undefined;
   let started = false;
@@ -108,5 +108,133 @@ export function narrate(paragraphs: readonly string[], lang: Lang, from = 0): ()
     window.clearTimeout(waiting);
     synth.removeEventListener?.("voiceschanged", start);
     synth.cancel();
+  };
+}
+
+// ── recorded narration ────────────────────────────────────────────────────────────────────────────────
+
+/** One recorded paragraph and how long it lasts, in seconds. */
+export interface Clip {
+  file: string;
+  seconds: number;
+}
+
+/** What `scripts/narracao.py` writes next to the recordings: the clips in order and the silence between them. */
+export interface Manifest {
+  pause: number;
+  clips: readonly Clip[];
+}
+
+const BASE = "/narracao/";
+const manifests = new Map<Lang, Promise<Manifest | null>>();
+
+function isManifest(value: unknown): value is Manifest {
+  if (typeof value !== "object" || value === null) return false;
+  const { pause, clips } = value as { pause?: unknown; clips?: unknown };
+  return (
+    typeof pause === "number" &&
+    Array.isArray(clips) &&
+    clips.length > 0 &&
+    clips.every((clip) => typeof clip === "object" && clip !== null && typeof clip.file === "string" && typeof clip.seconds === "number" && clip.seconds > 0)
+  );
+}
+
+/** The recorded narration of a language, or null if it has not been generated (or cannot be read). Asked once. */
+export function loadManifest(lang: Lang): Promise<Manifest | null> {
+  let found = manifests.get(lang);
+  if (!found) {
+    found =
+      typeof fetch !== "function"
+        ? Promise.resolve(null)
+        : fetch(`${BASE}${lang}.json`)
+            .then((response) => (response.ok ? response.json() : null))
+            .then((data: unknown) => (isManifest(data) ? data : null))
+            .catch(() => null); // without the recordings, the dev server answers with the page itself: not JSON
+    manifests.set(lang, found);
+  }
+  return found;
+}
+
+/** How long the recorded story lasts, with its pauses. */
+export function manifestSeconds(manifest: Manifest): number {
+  return Number((manifest.clips.reduce((sum, clip) => sum + clip.seconds, 0) + manifest.pause * (manifest.clips.length - 1)).toFixed(1));
+}
+
+/** Which clip is playing `elapsed` seconds into the story (the count when it is over). */
+export function clipAt(manifest: Manifest, elapsed: number): number {
+  let end = 0;
+  for (let i = 0; i < manifest.clips.length; i += 1) {
+    end += manifest.clips[i]!.seconds + manifest.pause;
+    if (elapsed < end) return i;
+  }
+  return manifest.clips.length;
+}
+
+function playClips(manifest: Manifest, from: number, onFail: (index: number) => void): () => void {
+  let stopped = false;
+  let index = from;
+  let current: HTMLAudioElement | null = null;
+  let timer: number | undefined;
+
+  const fail = (at: number): void => {
+    if (stopped) return;
+    stopped = true;
+    window.clearTimeout(timer);
+    current?.pause();
+    onFail(at);
+  };
+  const next = (): void => {
+    if (stopped || index >= manifest.clips.length) return;
+    const at = index++;
+    const audio = new Audio(`${BASE}${manifest.clips[at]!.file}`);
+    current = audio;
+    audio.onended = () => {
+      timer = window.setTimeout(next, manifest.pause * 1000);
+    };
+    audio.onerror = () => fail(at);
+    void Promise.resolve(audio.play()).catch(() => fail(at));
+    const after = manifest.clips[at + 1];
+    if (after) new Audio(`${BASE}${after.file}`).preload = "auto"; // warms the next clip while this one plays
+  };
+  next();
+  return () => {
+    stopped = true;
+    window.clearTimeout(timer);
+    current?.pause();
+  };
+}
+
+export interface NarrateOptions {
+  /** First paragraph to tell (when the sound is turned on halfway through). */
+  from?: number;
+  /** Wait this long, in milliseconds, before the first word. */
+  delay?: number;
+  /** The recorded narration, if there is one; otherwise the browser's voice reads it. */
+  manifest?: Manifest | null;
+}
+
+/**
+ * Narrates the story: the recorded voice if it has been generated, and the browser's own voice if not (or if a
+ * recording cannot be played). Returns a function that stops it.
+ */
+export function narrate(paragraphs: readonly string[], lang: Lang, { from = 0, delay = 0, manifest = null }: NarrateOptions = {}): () => void {
+  let stopInner: () => void = () => undefined;
+  let stopped = false;
+  const begin = (): void => {
+    if (stopped) return;
+    if (manifest && manifest.clips.length === paragraphs.length && typeof Audio !== "undefined") {
+      stopInner = playClips(manifest, from, (at) => {
+        stopInner = speak(paragraphs, lang, at);
+      });
+    } else {
+      stopInner = speak(paragraphs, lang, from);
+    }
+  };
+  const timer = delay > 0 ? window.setTimeout(begin, delay) : undefined;
+  if (timer === undefined) begin();
+  return () => {
+    stopped = true;
+    window.clearTimeout(timer);
+    stopInner();
   };
 }

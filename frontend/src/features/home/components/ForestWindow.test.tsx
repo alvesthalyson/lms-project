@@ -157,6 +157,10 @@ describe("ForestWindow", () => {
     act(() => {
       fireEvent.ended(loud.container.querySelector("video")!);
     });
+    expect(speak).not.toHaveBeenCalled(); // the voice waits for the text to begin to rise
+    act(() => {
+      vi.advanceTimersByTime(1300);
+    });
     // the narrator says one sentence at a time, and breathes before the next
     expect(speak).toHaveBeenCalledTimes(1);
     const first = speak.mock.calls[0]![0] as Utterance & { onend?: () => void };
