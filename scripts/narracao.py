@@ -78,7 +78,12 @@ async def build(lang: str, paragraphs: list[str], voice: str, rate: str, pitch: 
         print(f"  {path.name}: {text[:60]}…")
         await synthesize(text, voice, rate, pitch, path)
         clips.append({"file": path.name, "seconds": duration(path)})
-    manifest = {"voice": voice, "pause": PAUSE, "clips": clips}
+    # arquivos de uma versão anterior mais longa da história
+    for old in OUT.glob(f"{lang}-*.mp3"):
+        if int(old.stem.split("-")[1]) > len(paragraphs):
+            old.unlink()
+    # "texts" deixa o site saber de que texto é a gravação: se a história mudar, ele não usa o áudio antigo
+    manifest = {"voice": voice, "texts": paragraphs, "pause": PAUSE, "clips": clips}
     (OUT / f"{lang}.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     total = sum(c["seconds"] for c in clips) + PAUSE * (len(clips) - 1)
     print(f"  {lang}.json: {len(clips)} trechos, {total:.0f} s no total\n")

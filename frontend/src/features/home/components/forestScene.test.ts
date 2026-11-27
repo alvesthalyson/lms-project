@@ -16,7 +16,7 @@ describe("forest timeline", () => {
   });
 
   it("takes its length from the recorded narration when there is one", () => {
-    const manifest = { pause: 1, clips: [{ file: "a", seconds: 30 }, { file: "b", seconds: 40 }] };
+    const manifest = { texts: ["a", "b"], pause: 1, clips: [{ file: "a", seconds: 30 }, { file: "b", seconds: 40 }] };
     const paragraphs = STORIES.pt.paragraphs.slice(0, 2);
     expect(scrollSeconds(paragraphs, "pt", manifest)).toBe(71);
     expect(endDelay(paragraphs, "pt", manifest)).toBeCloseTo(TIMES.scrollStart + 72, 5);

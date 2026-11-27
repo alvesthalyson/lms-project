@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { STORIES } from "./stories";
-import { chunksOf, clipAt, loadManifest, manifestSeconds, narrate, pickVoice, type Manifest } from "./narration";
+import { chunksOf, clipAt, loadManifest, manifestMatches, manifestSeconds, narrate, pickVoice, type Manifest } from "./narration";
 
 const voice = (name: string, lang: string) => ({ name, lang }) as SpeechSynthesisVoice;
 
@@ -40,7 +40,7 @@ describe("narration", () => {
   });
 });
 
-const manifest: Manifest = { pause: 1, clips: [{ file: "pt-01.mp3", seconds: 4 }, { file: "pt-02.mp3", seconds: 6 }, { file: "pt-03.mp3", seconds: 5 }] };
+const manifest: Manifest = { texts: ["a", "b", "c"], pause: 1, clips: [{ file: "pt-01.mp3", seconds: 4 }, { file: "pt-02.mp3", seconds: 6 }, { file: "pt-03.mp3", seconds: 5 }] };
 
 class FakeAudio {
   static all: FakeAudio[] = [];
@@ -134,9 +134,18 @@ describe("recorded narration", () => {
     expect(spoken).toEqual(["Três."]); // the second paragraph, not the first
   });
 
-  it("uses the browser's voice when the manifest does not match the story", () => {
+  it("uses the browser's voice when the recording is not of this story (its words changed since it was made)", () => {
     vi.stubGlobal("Audio", FakeAudio);
     narrate(["só um"], "pt", { manifest });
+    narrate(["a", "b", "mudou"], "pt", { manifest });
     expect(FakeAudio.all).toHaveLength(0);
+    expect(manifestMatches(manifest, ["a", "b", "c"])).toBe(true);
+    expect(manifestMatches(manifest, ["a", "b", "d"])).toBe(false);
+    expect(manifestMatches(manifest, ["a", "b"])).toBe(false);
+  });
+
+  it("does not take an old manifest, made before the texts were recorded in it, for a manifest", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ pause: 1, clips: manifest.clips }) })));
+    expect(await loadManifest("ja")).toBeNull();
   });
 });

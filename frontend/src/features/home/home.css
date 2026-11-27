@@ -516,8 +516,9 @@
 /* the tale: title, then one line at a time, then the way on */
 .fw-close { position: fixed; top: 16px; right: 16px; z-index: 3; animation: fw-fade 0.6s ease 0.4s both; }
 .fw-story { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 6vw 6vh; text-align: center; pointer-events: none; z-index: 2; }
+.fw-head { position: absolute; left: 0; right: 0; top: max(68px, 7vh); padding: 0 6vw; text-align: center; pointer-events: none; z-index: 2; }
 .fw-kicker { margin: 0; font: 600 12px "Cinzel", Georgia, serif; letter-spacing: 0.32em; text-transform: uppercase; color: #9fd0ff; animation: fw-rise 1.2s ease 0.4s both; }
-.fw-title { margin: 6px 0 0; font: 600 clamp(1.6rem, 4.2vw, 2.7rem) / 1.15 Georgia, serif; color: #ffe9b8; text-shadow: 0 2px 14px #000; animation: fw-rise 1.2s ease 0.6s both; }
+.fw-title { margin: 6px 0 0; font: 600 clamp(1.6rem, 4.2vw, 2.7rem) / 1.15 Georgia, serif; color: #ffe9b8; text-shadow: 0 2px 14px #000, 0 0 30px rgba(0, 0, 0, 0.8); animation: fw-rise 1.2s ease 0.6s both; }
 .fw-lines { --view: 40vh; position: relative; height: var(--view); max-width: 56rem; margin: 14px auto 0; overflow: hidden; font: italic 400 clamp(1.3rem, 3.1vw, 2rem) / 1.5 Georgia, serif; text-shadow: 0 2px 12px #000; -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 88%, transparent); mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 88%, transparent); }
 /* the text rises like the lines of a tale told aloud, and comes to rest with its last lines in view */
 .fw-scroll { padding-top: var(--view); animation: fw-scroll var(--ls) linear var(--d) both; }

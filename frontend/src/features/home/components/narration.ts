@@ -121,6 +121,8 @@ export interface Clip {
 
 /** What `scripts/narracao.py` writes next to the recordings: the clips in order and the silence between them. */
 export interface Manifest {
+  /** The paragraphs that were recorded: the recording is used only while they are the ones on the screen. */
+  texts: readonly string[];
   pause: number;
   clips: readonly Clip[];
 }
@@ -130,8 +132,10 @@ const manifests = new Map<Lang, Promise<Manifest | null>>();
 
 function isManifest(value: unknown): value is Manifest {
   if (typeof value !== "object" || value === null) return false;
-  const { pause, clips } = value as { pause?: unknown; clips?: unknown };
+  const { texts, pause, clips } = value as { texts?: unknown; pause?: unknown; clips?: unknown };
   return (
+    Array.isArray(texts) &&
+    texts.every((text) => typeof text === "string") &&
     typeof pause === "number" &&
     Array.isArray(clips) &&
     clips.length > 0 &&
@@ -153,6 +157,11 @@ export function loadManifest(lang: Lang): Promise<Manifest | null> {
     manifests.set(lang, found);
   }
   return found;
+}
+
+/** Whether the recording is of this very story (its words may have changed since it was made). */
+export function manifestMatches(manifest: Manifest, paragraphs: readonly string[]): boolean {
+  return manifest.clips.length === paragraphs.length && manifest.texts.length === paragraphs.length && manifest.texts.every((text, i) => text === paragraphs[i]);
 }
 
 /** How long the recorded story lasts, with its pauses. */
@@ -222,7 +231,7 @@ export function narrate(paragraphs: readonly string[], lang: Lang, { from = 0, d
   let stopped = false;
   const begin = (): void => {
     if (stopped) return;
-    if (manifest && manifest.clips.length === paragraphs.length && typeof Audio !== "undefined") {
+    if (manifest && manifestMatches(manifest, paragraphs) && typeof Audio !== "undefined") {
       stopInner = playClips(manifest, from, (at) => {
         stopInner = speak(paragraphs, lang, at);
       });

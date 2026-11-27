@@ -1,8 +1,9 @@
 import type { Lang } from "@/lib/i18n/dictionaries";
 
 /**
- * The tale told in the firefly forest: one for each language of the site, written the way a storyteller would say it
- * aloud (short paragraphs, a greeting, a little pause before the ending). Each one is tied to a category of the library
+ * The tale told in the firefly forest: one for each language of the site, a traditional tale of the country where it is
+ * spoken (Brazil, the United States, Japan), retold the way a storyteller would say it aloud (short paragraphs, a greeting,
+ * a little pause before the ending). Each one is tied to a category of the library
  * (by slug), so that its ending can lead the reader to that shelf.
  */
 export interface Story {
@@ -16,45 +17,45 @@ export interface Story {
 
 export const STORIES: Record<Lang, Story> = {
   pt: {
-    id: "lua",
+    id: "vitoria-regia",
     category: "poesia",
-    title: "A lua e o carvalho",
+    title: "A lenda da vitória-régia",
     paragraphs: [
-      "Chegue mais perto, viajante, e sente-se um pouquinho. A noite é longa, e eu tenho uma história para você.",
-      "Dizem que, bem no meio desta floresta, vive um carvalho muito velho. Tão velho que ninguém se lembra de quando ele era pequeno.",
-      "Numa noite de lua cheia, a lua desceu até o alto dos seus galhos e perguntou: “Velho carvalho, como é que você nunca se cansa de esperar?”",
-      "O carvalho riu, bem baixinho, e as folhas todas balançaram. “Eu não espero, minha amiga. Eu escuto o vento.”",
-      "Porque o vento, sabe, passa a noite inteira contando histórias. Cada folha guarda uma delas, e quando amanhece, a floresta toda vira um poema sussurrado.",
-      "E foi assim que a lua descobriu que esperar, às vezes, é só uma maneira bonita de ouvir.",
-      "Agora fique quietinho… Está ouvindo? Ainda falta um verso nesta história. E ele é seu.",
+      "Chegue mais perto, viajante, e sente-se um pouquinho. Hoje eu vou contar uma lenda muito antiga, que os povos da floresta contam desde antes de existirem livros.",
+      "Dizem que a lua, a quem os indígenas chamavam de Jaci, passeava pelo céu escolhendo moças para levar com ela e transformá-las em estrelas.",
+      "Numa aldeia à beira de um grande rio vivia uma jovem chamada Naiá. Noite após noite, ela olhava para o céu e sonhava em ser uma estrela, ao lado da lua.",
+      "Certa noite, Naiá viu a lua refletida nas águas calmas do lago. Pensou que ela havia descido para buscá-la. Estendeu os braços, correu para a água… e o lago a abraçou para sempre.",
+      "A lua, comovida, não quis deixá-la perdida no fundo do rio. Então a transformou numa estrela diferente de todas as outras: uma estrela das águas.",
+      "É por isso que, até hoje, a vitória-régia abre as suas grandes flores brancas ao cair da noite, e fica rosada ao amanhecer, flutuando sobre o lago como uma estrela que aprendeu a nadar.",
+      "Agora fique quietinho… Se olhar bem para a água, talvez veja uma delas. As estrelas também escrevem versos, sabe? E ainda falta um nesta história: o seu.",
     ],
   },
   en: {
-    id: "lantern",
+    id: "appleseed",
     category: "fantasia",
-    title: "The firefly lantern",
+    title: "Johnny Appleseed",
     paragraphs: [
-      "Come closer, traveller, and sit awhile. The night is long, and I have a story for you.",
-      "They say every firefly in this forest was once a word. Small, shy words that slipped out of their books on a new-moon night, tired of waiting for someone to read them.",
-      "At first, they were lost. They bumped into trees, they flickered, they whispered the first half of a sentence and forgot the second.",
-      "Then, one evening, a little girl came walking through the woods with a lantern, and she was afraid of the dark.",
-      "But the fireflies gathered around her, one by one, until her lantern shone brighter than the moon. And all the way home they spelled out the words she needed: be brave, keep walking, you are not alone.",
-      "And do you know? She never stopped being brave. And the words never stopped following those who read.",
-      "Now look closely… One of them has just landed on your hand. It is waiting for you to choose the ending.",
+      "Come closer, traveller, and sit awhile. Tonight I will tell you an old American tale, the kind folks tell around a fire.",
+      "Long ago, when the land was mostly forest and the roads were mostly dreams, there walked a man called Johnny Appleseed.",
+      "He wore a tin pot for a hat, no shoes on his feet, and he carried a sack full of apple seeds. Nothing else.",
+      "Wherever he went, he stopped, dug a little hole, and planted a seed. People asked him, “Why plant a tree you will never sit under?” And Johnny just smiled. “Someone will,” he said. “Someone always does.”",
+      "The years went by. The wanderer grew old, and the trees grew tall. Every spring the hills filled up with white blossoms, and every autumn, tired travellers found ripe apples along their way.",
+      "Fruit from a stranger who had never met them, and who never asked for anything in return.",
+      "That is the secret of the tale: the kindest things we do are seeds. Now look closely… There is one in your hand tonight. What will you plant?",
     ],
   },
   ja: {
-    id: "michi",
+    id: "momotaro",
     category: "aventura",
-    title: "誰も記さなかった道",
+    title: "桃太郎",
     paragraphs: [
-      "さあ、もっと近くへ。少しだけ座って、ゆっくり聞いてくださいね。今夜は、とっておきのお話をしましょう。",
-      "むかしむかし、この森には、どんな地図にも載っていない道がありました。",
-      "その道は、好奇心をひとにぎり持った人にだけ、そっと姿を見せるのです。",
-      "ある晩、小さな男の子が、ひとりで森に迷い込みました。こわくて、足がふるえていました。",
-      "すると、木々のあいだで蛍がひとつ、ふわりと光りました。もうひとつ。またひとつ。蛍は、男の子の少し先に、光の道を描いてくれたのです。",
-      "男の子は、一歩、また一歩と歩きました。曲がり角のたびに新しい問いがあり、その問いの先には、いつも本が待っていました。",
-      "光は、遠くへは導きません。いつだって、次の章へ連れていってくれるのです。……ほら、あなたの前にも、ひとつ灯りましたよ。",
+      "さあ、もっと近くへ。少しだけ座って、ゆっくり聞いてくださいね。今夜は、日本のとても古いお話をしましょう。",
+      "むかしむかし、あるところに、おじいさんとおばあさんが住んでいました。おじいさんは山へしばかりに、おばあさんは川へせんたくに行きました。",
+      "おばあさんが川で洗濯をしていると、どんぶらこ、どんぶらこと、大きな桃が流れてきました。家に持ち帰って割ってみると、中から元気な男の子が飛び出しました。桃太郎です。",
+      "桃太郎はすくすくと育ち、やがて、村を困らせる鬼を退治しに行くと決めました。おばあさんは、きびだんごをこしらえて持たせてくれました。",
+      "道のとちゅうで、犬と、猿と、きじに出会いました。みんな、きびだんごをひとつ分けてほしいと言います。桃太郎が分けてあげると、三匹は喜んで、仲間になりました。",
+      "四人は力を合わせて鬼ヶ島へ渡り、見事に鬼たちを降参させました。そして宝物をかついで、みんなで村へ帰りました。",
+      "分け合う心が、いちばん強い味方になる。……それが、このお話が昔から伝えてきたことです。さあ、あなたの旅は、どこから始まりますか。",
     ],
   },
 };

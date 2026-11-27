@@ -177,6 +177,43 @@ describe("ForestWindow", () => {
     expect(cancel).toHaveBeenCalled(); // closing the window silences the narrator
   });
 
+  it("goes quiet when the reader leaves the screen, and picks the story up again on return", () => {
+    const speak = vi.fn();
+    const cancel = vi.fn();
+    class Utterance {
+      lang = "";
+      rate = 1;
+      pitch = 1;
+      voice: unknown = null;
+      constructor(public text: string) {}
+    }
+    vi.stubGlobal("SpeechSynthesisUtterance", Utterance);
+    vi.stubGlobal("speechSynthesis", { speak, cancel, getVoices: () => [{ name: "Voz", lang: "pt-BR" }], addEventListener: vi.fn(), removeEventListener: vi.fn() });
+    const visibility = vi.spyOn(document, "visibilityState", "get");
+    usePrefs.setState({ sound: true });
+    vi.useFakeTimers();
+    const { container } = show([POETRY]);
+    act(() => {
+      fireEvent.ended(container.querySelector("video")!);
+      vi.advanceTimersByTime(1300);
+    });
+    expect(speak).toHaveBeenCalledTimes(1);
+    cancel.mockClear();
+    act(() => {
+      visibility.mockReturnValue("hidden");
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(cancel).toHaveBeenCalled(); // the voice stops at once
+    speak.mockClear();
+    act(() => {
+      visibility.mockReturnValue("visible");
+      document.dispatchEvent(new Event("visibilitychange"));
+      vi.advanceTimersByTime(1300);
+    });
+    expect(speak).toHaveBeenCalledTimes(1);
+    visibility.mockRestore();
+  });
+
   it("does not break in a browser without speech", () => {
     usePrefs.setState({ sound: true });
     const { container } = show([POETRY]);

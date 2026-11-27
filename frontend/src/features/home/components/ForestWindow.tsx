@@ -6,7 +6,7 @@ import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
 import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, paragraphAt, scrollSeconds } from "./forestScene";
-import { loadManifest, narrate, type Manifest } from "./narration";
+import { loadManifest, manifestMatches, narrate, type Manifest } from "./narration";
 import { storyFor } from "./stories";
 
 interface ForestWindowProps {
@@ -34,6 +34,20 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   const sound = usePrefs((s) => s.sound);
   const setSound = usePrefs((s) => s.setSound);
   const liveAt = useRef(0);
+  // Leaving the screen (another tab, another app, closing the page) silences the story; coming back picks it up again.
+  const [away, setAway] = useState(() => typeof document !== "undefined" && document.visibilityState === "hidden");
+  useEffect(() => {
+    const check = (): void => setAway(document.visibilityState === "hidden");
+    const leave = (): void => setAway(true);
+    document.addEventListener("visibilitychange", check);
+    window.addEventListener("pagehide", leave);
+    window.addEventListener("pageshow", check);
+    return () => {
+      document.removeEventListener("visibilitychange", check);
+      window.removeEventListener("pagehide", leave);
+      window.removeEventListener("pageshow", check);
+    };
+  }, []);
   // Live: the film is over, the forest breathes and the tale begins. Whoever asks for less motion skips the film.
   const [live, setLive] = useState(() => typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const goLive = useCallback(() => setLive(true), []);
@@ -54,7 +68,7 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   useEffect(() => {
     let current = true;
     void loadManifest(lang).then((manifest) => {
-      if (current && manifest && manifest.clips.length === story.paragraphs.length) setRecorded({ lang, manifest });
+      if (current && manifest && manifestMatches(manifest, story.paragraphs)) setRecorded({ lang, manifest });
     });
     return () => {
       current = false;
@@ -70,25 +84,26 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   }, [live]);
   // The sound can be turned on halfway through: the narrator then joins in where the text is, not from the start.
   useEffect(() => {
-    if (!live || !sound) return undefined;
+    if (!live || !sound || away) return undefined;
     const elapsed = (Date.now() - liveAt.current) / 1000;
     const from = paragraphAt(story.paragraphs, lang, elapsed, manifest);
     // At the very start the voice waits for the text to begin to rise; later it joins in at once.
     const delay = from === 0 ? Math.max(0, TIMES.scrollStart - elapsed) * 1000 : 0;
     return narrate(story.paragraphs, lang, { from, delay, manifest });
-  }, [live, sound, story, lang, manifest]);
+  }, [live, sound, away, story, lang, manifest]);
   // Under the narrator, a soft melody hums from the moment the story begins.
   useEffect(() => {
-    if (!live || !sound) return undefined;
+    if (!live || !sound || away) return undefined;
     return sfx.lullaby();
-  }, [live, sound]);
+  }, [live, sound, away]);
   // The film's own sound follows the same switch, and starts if the browser had held it back.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     video.muted = !sound;
-    if (sound && !video.ended && video.paused && !live) void video.play?.()?.catch?.(() => undefined);
-  }, [sound, live]);
+    if (away) video.pause?.();
+    else if (!live && !video.ended && video.paused) void video.play?.()?.catch?.(() => undefined);
+  }, [sound, live, away]);
   const flies = useMemo(() => fireflies(), []);
 
   useEffect(() => {
@@ -138,9 +153,12 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
         </button>
       )}
 
-      <div className="fw-story">
+      <div className="fw-head">
         <p className="fw-kicker">{t("forest.kicker")}</p>
         <h2 className="fw-title">{story.title}</h2>
+      </div>
+
+      <div className="fw-story">
         <div className="fw-lines" style={vars({ d: `${TIMES.scrollStart}s`, ls: `${seconds}s` })}>
           <div className="fw-scroll">
             {story.paragraphs.map((paragraph, i) => (
