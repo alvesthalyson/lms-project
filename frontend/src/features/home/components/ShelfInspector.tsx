@@ -33,7 +33,7 @@ function isTyping(target: EventTarget | null): boolean {
  * It is a modal dialog: Esc, the X button and a click outside close it, and focus returns to the shelf.
  */
 export function ShelfInspector({ target, onClose }: ShelfInspectorProps) {
-  const { t } = useT();
+  const { t, bookName } = useT();
   const [params, setParams] = useSearchParams();
   const view = params.get("vista") === "lista" ? "lista" : "estante";
   const q = params.get("q") ?? "";
@@ -139,7 +139,7 @@ export function ShelfInspector({ target, onClose }: ShelfInspectorProps) {
             <ul className="hm-books">
               {books.map((book) => (
                 <li key={book.id}>
-                  <button type="button" className="hm-title hm-title--btn" onClick={() => setSelected(book)}>{book.title}</button>
+                  <button type="button" className="hm-title hm-title--btn" onClick={() => setSelected(book)}>{bookName(book)}</button>
                   <span className="hm-author">
                     {book.authors.map((a) => a.name).join(", ") || t("book.unknownAuthor")}
                     {book.publication_year ? ` · ${book.publication_year}` : ""}

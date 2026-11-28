@@ -13,12 +13,13 @@ import { toast } from "@/lib/toast";
 export function ReserveAction({ book, className = "hm-reserve" }: { book: Book; className?: string }) {
   const { user } = useAuth();
   const reserve = useReserveBook();
-  const { t } = useT();
+  const { t, bookName } = useT();
+  const title = bookName(book);
   if (book.is_available || book.total_copies === 0) return null;
 
   if (!user) {
     return (
-      <Link to="/login" state={{ from: { pathname: "/" } }} className={className} aria-label={t("reserve.signInAria", { title: book.title })}>
+      <Link to="/login" state={{ from: { pathname: "/" } }} className={className} aria-label={t("reserve.signInAria", { title })}>
         {t("reserve.signIn")}
       </Link>
     );
@@ -29,7 +30,7 @@ export function ReserveAction({ book, className = "hm-reserve" }: { book: Book; 
     <button
       type="button"
       className={className}
-      aria-label={t("reserve.aria", { title: book.title })}
+      aria-label={t("reserve.aria", { title })}
       disabled={reserve.isPending}
       onClick={() =>
         reserve.mutate(
@@ -38,8 +39,8 @@ export function ReserveAction({ book, className = "hm-reserve" }: { book: Book; 
             onSuccess: (reservation) =>
               toast.success(
                 reservation.queue_position
-                  ? t("reserve.doneQueue", { pos: reservation.queue_position, title: book.title })
-                  : t("reserve.done", { title: book.title }),
+                  ? t("reserve.doneQueue", { pos: reservation.queue_position, title })
+                  : t("reserve.done", { title }),
               ),
           },
         )

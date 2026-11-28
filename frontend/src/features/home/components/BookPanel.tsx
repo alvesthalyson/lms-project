@@ -97,7 +97,7 @@ interface BookPanelProps {
  */
 export function BookPanel({ book: initial, onClose, onOpenBook }: BookPanelProps) {
   const { user } = useAuth();
-  const { t } = useT();
+  const { t, bookName } = useT();
   const closeRef = useRef<HTMLButtonElement>(null);
   const detail = useBook(initial.id);
   const reviews = useReviews(initial.id);
@@ -149,16 +149,16 @@ export function BookPanel({ book: initial, onClose, onOpenBook }: BookPanelProps
         <div className="bp-hero" aria-hidden>
           <div className="bp-book">
             <span className="b3d-front">
-              {book.cover_image ? <img src={book.cover_image} alt="" /> : <span className="b3d-name">{book.title}</span>}
+              {book.cover_image ? <img src={book.cover_image} alt="" /> : <span className="b3d-name">{bookName(book)}</span>}
             </span>
-            <span className="b3d-spine">{book.title}</span>
+            <span className="b3d-spine">{bookName(book)}</span>
             <span className="b3d-pages" />
           </div>
         </div>
 
         <div className="bp-body">
           <p className="hm-kicker">{book.category.name}</p>
-          <h2 id="bp-title">{book.title}</h2>
+          <h2 id="bp-title">{bookName(book)}</h2>
           <p className="bp-author">{author}</p>
           <p className="bp-meta">
             {[book.publication_year, book.pages ? t("panel.pages", { n: book.pages }) : null, book.publisher || null]
@@ -223,8 +223,8 @@ export function BookPanel({ book: initial, onClose, onOpenBook }: BookPanelProps
               <ul className="bp-related">
                 {related.data!.map(({ book: next, reason }) => (
                   <li key={next.id}>
-                    <button type="button" onClick={() => onOpenBook(next)} aria-label={t("panel.open", { title: next.title })}>
-                      <strong>{next.title}</strong>
+                    <button type="button" onClick={() => onOpenBook(next)} aria-label={t("panel.open", { title: bookName(next) })}>
+                      <strong>{bookName(next)}</strong>
                       <small>{t(REASON_KEY[reason])}</small>
                     </button>
                   </li>

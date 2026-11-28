@@ -214,6 +214,21 @@ describe("HomePage: the globe", () => {
 });
 
 describe("HomePage: language", () => {
+  it("shows the names of the books in the chosen language too", async () => {
+    usePrefs.setState({ lang: "en" });
+    try {
+      renderHome();
+      const user = userEvent.setup();
+      await user.click((await screen.findAllByRole("button", { name: "Poetry" }))[0]!);
+      const dialog = await screen.findByRole("dialog");
+      await user.click(within(dialog).getByRole("button", { name: "List" }));
+      expect(await within(dialog).findByText("Poetic Anthology")).toBeInTheDocument();
+      expect(within(dialog).queryByText("Antologia Poética")).not.toBeInTheDocument();
+    } finally {
+      usePrefs.setState({ lang: "pt" });
+    }
+  });
+
   it("shows the category names and the Indicação label in the chosen language", async () => {
     usePrefs.setState({ lang: "en" });
     try {

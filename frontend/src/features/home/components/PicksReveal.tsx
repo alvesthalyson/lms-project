@@ -74,7 +74,7 @@ interface PicksRevealProps {
  * available books; "Another recommendation" replays the flight with a different one.
  */
 export function PicksReveal({ origin, onClose }: PicksRevealProps) {
-  const { t, lang } = useT();
+  const { t, lang, bookName } = useT();
   const { data, isLoading, isError } = useBooks({ available: true, ordering: "-created_at", page_size: 40 });
   const books = useMemo(() => data?.results ?? [], [data]);
   const [round, setRound] = useState(0);
@@ -155,11 +155,11 @@ export function PicksReveal({ origin, onClose }: PicksRevealProps) {
           <div className="pk-hero" key={`${round}-${pick.id}`} lang={lang}>
             <div className="pk-rays" aria-hidden />
             <p className="hm-kicker pk-kicker">{t("home.picksKicker")}</p>
-            <button type="button" className="pk-book" style={{ "--h": hue } as CSSProperties} onClick={() => setDetail(pick)} aria-label={`${pick.title}, ${author}`}>
-              {pick.cover_image ? <img src={pick.cover_image} alt="" /> : <span className="pk-cover-title">{pick.title}</span>}
+            <button type="button" className="pk-book" style={{ "--h": hue } as CSSProperties} onClick={() => setDetail(pick)} aria-label={`${bookName(pick)}, ${author}`}>
+              {pick.cover_image ? <img src={pick.cover_image} alt="" /> : <span className="pk-cover-title">{bookName(pick)}</span>}
               <span className="pk-shine" aria-hidden />
             </button>
-            <h2 className="pk-title">{pick.title}</h2>
+            <h2 className="pk-title">{bookName(pick)}</h2>
             <p className="pk-author">
               {author}
               {pick.publication_year ? ` · ${pick.publication_year}` : ""}

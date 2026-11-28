@@ -12,7 +12,8 @@ const PER_SHELF = 6;
 /** One slanted 3D book. The cover colour tints its glow once the image has been sampled. */
 function Book3D({ book, index, onOpen }: { book: Book; index: number; onOpen: (book: Book) => void }) {
   const [tint, setTint] = useState<string | null>(null);
-  const { t } = useT();
+  const { t, bookName } = useT();
+  const name = bookName(book);
   useEffect(() => {
     let alive = true;
     if (book.cover_image) void sampleCoverTint(book.cover_image).then((t) => alive && setTint(t));
@@ -29,18 +30,18 @@ function Book3D({ book, index, onOpen }: { book: Book; index: number; onOpen: (b
         className="b3d"
         style={tintStyle(book.title, tint)}
         onClick={() => onOpen(book)}
-        aria-label={`${book.title}, ${author}`}
+        aria-label={`${name}, ${author}`}
         data-available={book.is_available}
       >
         <span className="b3d-body" aria-hidden>
           <span className="b3d-front">
-            {book.cover_image ? <img src={book.cover_image} alt="" loading="lazy" /> : <span className="b3d-name">{book.title}</span>}
+            {book.cover_image ? <img src={book.cover_image} alt="" loading="lazy" /> : <span className="b3d-name">{name}</span>}
           </span>
-          <span className="b3d-spine">{book.title}</span>
+          <span className="b3d-spine">{name}</span>
           <span className="b3d-pages" />
         </span>
         <span className="sh-peek" aria-hidden>
-          <strong>{book.title}</strong>
+          <strong>{name}</strong>
           <span>{author}</span>
           <Stars value={book.rating_avg} count={book.rating_count} />
           <em data-available={book.is_available}>{book.is_available ? t("book.availableN", { n: book.available_copies }) : t("book.loaned")}</em>

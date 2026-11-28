@@ -23,7 +23,7 @@ export function daysUntil(due: string, now: Date = new Date()): number {
  * days are left. Visitors are asked to sign in. Modal dialog: Esc, the X button and a click outside close it.
  */
 export function HourglassDialog({ onClose }: HourglassDialogProps) {
-  const { t, lang } = useT();
+  const { t, lang, bookName } = useT();
   const { user } = useAuth();
   const closeRef = useRef<HTMLButtonElement>(null);
   const mine = user ? { member: user.id, ordering: "due_date" as const, page_size: 50 } : null;
@@ -65,7 +65,7 @@ export function HourglassDialog({ onClose }: HourglassDialogProps) {
     const [y, m, d] = loan.due_date.split("-").map(Number);
     return (
       <li key={loan.id} className={late ? "hg-row hg-row--late" : "hg-row"}>
-        <span className="hg-book">{loan.book.title}</span>
+        <span className="hg-book">{bookName(loan.book)}</span>
         <span className="hg-when">{when(loan)}</span>
         <span className="hg-date">{date.format(new Date(y, m - 1, d))}</span>
       </li>
