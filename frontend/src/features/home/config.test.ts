@@ -113,7 +113,7 @@ describe("the second floor", () => {
 
   it("has the old globe on the ground floor, at the left, outlined along its own shape", () => {
     const globe = HOME_ROOMS.library.globe!;
-    expect(globe.shape!.length).toBeGreaterThan(12);
+    expect(globe.shape!.length).toBeGreaterThan(24); // follows the sphere, the ring, the arm, the neck and the base
     expect(globe.left).toBe(0); // it is cut by the left edge of the picture
     expect(globe.left + globe.width).toBeLessThan(0.1); // and stays on the left
     expect(globe.top).toBeGreaterThan(0.4); // in the lower half, on the desk
