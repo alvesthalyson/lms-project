@@ -5,7 +5,7 @@ import { usePrefs } from "@/lib/i18n/store";
 import * as sfx from "@/lib/sound/engine";
 import { useT } from "@/lib/i18n/useT";
 
-import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, paragraphAt, scrollSeconds } from "./forestScene";
+import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, paragraphAt, paragraphTimes, scrollKeyframes, scrollSeconds } from "./forestScene";
 import { loadManifest, manifestMatches, narrate, type Manifest } from "./narration";
 import { storyFor } from "./stories";
 
@@ -30,6 +30,8 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   const { t, lang, catName } = useT();
   const closeRef = useRef<HTMLButtonElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   // The film carries its own soundtrack; it is heard only when the reader has sound on.
   const sound = usePrefs((s) => s.sound);
   const setSound = usePrefs((s) => s.setSound);
@@ -76,6 +78,32 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
   }, [lang, story]);
   const manifest = recorded?.lang === lang ? recorded.manifest : null;
   const seconds = scrollSeconds(story.paragraphs, lang, manifest);
+  const times = useMemo(() => paragraphTimes(story.paragraphs, lang, manifest), [story, lang, manifest]);
+
+  // The text rises in step with the voice: each paragraph is at the reading line while it is being told.
+  useEffect(() => {
+    const box = boxRef.current;
+    const scroll = scrollRef.current;
+    if (!live || !box || !scroll || typeof scroll.animate !== "function") return undefined;
+    if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    if (liveAt.current === 0) liveAt.current = Date.now();
+    let animation: Animation | undefined;
+    const build = (): void => {
+      animation?.cancel();
+      const boxes = Array.from(scroll.querySelectorAll<HTMLElement>(".fw-line")).map((line) => ({ top: line.offsetTop, height: line.offsetHeight }));
+      const keyframes = scrollKeyframes(boxes, times, box.clientHeight, seconds);
+      if (keyframes.length === 0) return;
+      // The animation is anchored to the moment the forest went live, so rebuilding it (the window was resized) keeps its place.
+      const elapsed = (Date.now() - liveAt.current) / 1000;
+      animation = scroll.animate(keyframes, { duration: seconds * 1000, delay: (TIMES.scrollStart - elapsed) * 1000, fill: "both", easing: "linear" });
+    };
+    build();
+    window.addEventListener("resize", build);
+    return () => {
+      window.removeEventListener("resize", build);
+      animation?.cancel();
+    };
+  }, [live, times, seconds]);
   // The category of the story; if the library has no such shelf, the first one, so that the story still leads somewhere.
   const next = categories.find((category) => category.slug === story.category) ?? categories[0];
   // The narrator begins when the forest is live, and only for a reader who has sound on.
@@ -159,8 +187,8 @@ export function ForestWindow({ categories, onOpenCategory, onClose }: ForestWind
       </div>
 
       <div className="fw-story">
-        <div className="fw-lines" style={vars({ d: `${TIMES.scrollStart}s`, ls: `${seconds}s` })}>
-          <div className="fw-scroll">
+        <div ref={boxRef} className="fw-lines" style={vars({ d: `${TIMES.scrollStart}s`, ls: `${seconds}s` })}>
+          <div ref={scrollRef} className="fw-scroll">
             {story.paragraphs.map((paragraph, i) => (
               <p key={i} className="fw-line">
                 {paragraph}

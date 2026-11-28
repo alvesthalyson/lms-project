@@ -42,6 +42,63 @@ export function scrollSeconds(paragraphs: readonly string[], lang: Lang, manifes
   return Number((speech + breaths).toFixed(1));
 }
 
+/** When each paragraph is told, in seconds from the start of the story: from the recording, or estimated. */
+export function paragraphTimes(paragraphs: readonly string[], lang: Lang, manifest?: Manifest | null): { start: number; end: number }[] {
+  const times: { start: number; end: number }[] = [];
+  let at = 0;
+  paragraphs.forEach((paragraph, i) => {
+    let seconds: number;
+    let gap: number;
+    const clip = manifest?.clips[i];
+    if (manifest && clip) {
+      seconds = clip.seconds;
+      gap = manifest.pause;
+    } else {
+      const chunks = chunksOf([paragraph]);
+      const speech = lang === "ja" ? paragraph.replace(/\s/g, "").length / 4.6 : paragraph.split(/\s+/).filter(Boolean).length / 2.1;
+      gap = chunks.length > 0 ? chunks[chunks.length - 1]!.pause / 1000 : 0;
+      seconds = speech + chunks.slice(0, -1).reduce((sum, chunk) => sum + chunk.pause, 0) / 1000;
+    }
+    times.push({ start: Number(at.toFixed(2)), end: Number((at + seconds).toFixed(2)) });
+    at += seconds + gap;
+  });
+  return times;
+}
+
+/** Where the paragraphs sit in the scrolling block (top and height, in pixels). */
+export interface Box {
+  top: number;
+  height: number;
+}
+
+/** The line of the screen where the words being told are, as a fraction of the height of the viewport. */
+export const READING_LINE = 0.5;
+
+/**
+ * The keyframes that make the text rise in step with the voice. A reading mark runs down the text: at the start of a
+ * paragraph it is at the paragraph's top, at its end at the bottom, and in the pause between paragraphs it crosses the
+ * gap. The block is moved so that the mark always stays on the reading line, so the words appear just as they are said.
+ */
+export function scrollKeyframes(boxes: readonly Box[], times: readonly { start: number; end: number }[], view: number, total: number): { offset: number; transform: string }[] {
+  const at = (y: number): string => `translateY(${Number((view * READING_LINE - y).toFixed(1))}px)`;
+  const frames: { offset: number; transform: string }[] = [];
+  const push = (time: number, y: number): void => {
+    const offset = Math.min(1, Math.max(frames.length > 0 ? frames[frames.length - 1]!.offset : 0, total > 0 ? time / total : 0));
+    frames.push({ offset: Number(offset.toFixed(4)), transform: at(y) });
+  };
+  boxes.forEach((box, i) => {
+    const time = times[i];
+    if (!time) return;
+    push(time.start, box.top);
+    push(time.end, box.top + box.height);
+  });
+  const last = frames[frames.length - 1];
+  if (!last) return [];
+  if (frames[0]!.offset > 0) frames.unshift({ offset: 0, transform: frames[0]!.transform });
+  if (last.offset < 1) frames.push({ offset: 1, transform: last.transform });
+  return frames;
+}
+
 /** Which paragraph the narrator should be on, `elapsed` seconds after the forest went live (the count when it is over). */
 export function paragraphAt(paragraphs: readonly string[], lang: Lang, elapsed: number, manifest?: Manifest | null): number {
   const t = Math.max(0, elapsed - TIMES.scrollStart);

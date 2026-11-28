@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, forestAssets, paragraphAt, scrollSeconds } from "./forestScene";
+import { FOREST, POSTER, TIMES, VIDEO, VIDEO_SECONDS, endDelay, fireflies, forestAssets, paragraphAt, paragraphTimes, scrollKeyframes, scrollSeconds } from "./forestScene";
 import { STORIES, storyFor } from "./stories";
 
 describe("forest timeline", () => {
@@ -21,6 +21,30 @@ describe("forest timeline", () => {
     expect(scrollSeconds(paragraphs, "pt", manifest)).toBe(71);
     expect(endDelay(paragraphs, "pt", manifest)).toBeCloseTo(TIMES.scrollStart + 72, 5);
     expect(paragraphAt(paragraphs, "pt", TIMES.scrollStart + 31.5, manifest)).toBe(1);
+  });
+
+  it("times each paragraph, from the recording when there is one", () => {
+    const manifest = { texts: ["a", "b"], pause: 1, clips: [{ file: "a", seconds: 30 }, { file: "b", seconds: 40 }] };
+    expect(paragraphTimes(["a", "b"], "pt", manifest)).toEqual([{ start: 0, end: 30 }, { start: 31, end: 71 }]);
+    const guess = paragraphTimes(STORIES.en.paragraphs, "en");
+    expect(guess).toHaveLength(STORIES.en.paragraphs.length);
+    guess.forEach((time, i) => {
+      expect(time.end).toBeGreaterThan(time.start);
+      if (i > 0) expect(time.start).toBeGreaterThan(guess[i - 1]!.end); // a breath between paragraphs
+    });
+    expect(guess[guess.length - 1]!.end).toBeLessThanOrEqual(scrollSeconds(STORIES.en.paragraphs, "en"));
+  });
+
+  it("keeps the words being told on the reading line: each paragraph's top at its start, its bottom at its end", () => {
+    const boxes = [{ top: 200, height: 100 }, { top: 330, height: 60 }];
+    const times = [{ start: 0, end: 10 }, { start: 12, end: 20 }];
+    const frames = scrollKeyframes(boxes, times, 200, 21);
+    // the reading line is at half the height (100 px): the block moves up by (position - 100)
+    expect(frames.map((f) => f.transform)).toEqual(["translateY(-100px)", "translateY(-200px)", "translateY(-230px)", "translateY(-290px)", "translateY(-290px)"]);
+    expect(frames[0]!.offset).toBe(0);
+    expect(frames[frames.length - 1]!.offset).toBe(1);
+    for (let i = 1; i < frames.length; i += 1) expect(frames[i]!.offset).toBeGreaterThanOrEqual(frames[i - 1]!.offset);
+    expect(scrollKeyframes([], [], 200, 20)).toEqual([]);
   });
 
   it("finds the paragraph the narrator should be on, from the first to the end", () => {
