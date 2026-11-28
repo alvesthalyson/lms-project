@@ -6,18 +6,18 @@ import { chunksOf, clipAt, manifestSeconds, type Manifest } from "./narration";
  * The scene of the window onto the firefly forest, as plain data: the timeline and the fireflies. Pure, so it can be
  * tested.
  *
- * The window opens with a short film of the journey (the library, the camera going up to the stained glass, the
- * glass turning into a swirl of light, a tunnel, a flash, and the forest arriving). When the film ends (or cannot
+ * The window opens with a film of the journey (the second floor, the camera going up to the stained-glass window, the
+ * window opening onto the night, and the camera flying out into the forest of fireflies). When the film ends (or cannot
  * play) the forest is "live": the film fades out into the same forest, the fireflies float, and the tale is told
  * as text that rises. All the times below are seconds after that moment.
  */
 
 /** The film of the journey and its first frame, shown while it loads. */
-export const VIDEO = "/transicao-viagem-som.mp4";
-export const POSTER = "/transicao-capa.jpg";
+export const VIDEO = "/janela-floresta.mp4";
+export const POSTER = "/janela-floresta-capa.jpg";
 export const FOREST = "/floresta-vagalumes.jpg";
 /** How long the film lasts, in seconds; if it has not ended a little after that, the forest goes live anyway. */
-export const VIDEO_SECONDS = 5.8;
+export const VIDEO_SECONDS = 10.1;
 
 /** Everything the window shows, so that it can be fetched before the reader opens it. */
 export function forestAssets(): { images: string[]; video: string } {

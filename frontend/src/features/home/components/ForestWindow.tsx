@@ -21,8 +21,8 @@ function vars(values: Record<string, string | number>): CSSProperties {
 }
 
 /**
- * The window of the library, opened: a short film takes the camera up to the stained-glass tree, which turns into a
- * swirl of light, and comes out in a forest of fireflies. When the film ends (or if it cannot play) the same forest
+ * The window of the library, opened: a film takes the camera up to the stained-glass window, which opens onto the
+ * night, and flies out into a forest of fireflies. When the film ends (or if it cannot play) the same forest
  * goes live and the tale of the day is told there, a line at a time. At the end the reader can continue on the shelf
  * of the tale's category. Modal: Esc and the X button close it.
  */
