@@ -188,14 +188,12 @@ describe("HomePage: reserving from a shelf", () => {
 });
 
 describe("HomePage: the globe", () => {
-  it("opens from the armillary sphere upstairs and shows the shelf of the chosen country", async () => {
+  it("opens from the old globe on the ground floor and shows the shelf of the chosen country", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ JP: { c: [138, 36], r: [[130, 31, 142, 31, 142, 41, 130, 41]] } }) }));
     vi.mocked(listCountries).mockResolvedValue([{ country: "JP", books: 2 }]);
     const user = userEvent.setup();
     renderHome();
 
-    expect(screen.queryByRole("button", { name: "Abrir o globo" })).not.toBeInTheDocument(); // not on the ground floor
-    await user.click((await screen.findAllByRole("button", { name: "Subir ao segundo andar" }))[0]!);
     await user.click((await screen.findAllByRole("button", { name: /Abrir o globo/ }))[0]!);
 
     await user.click(await screen.findByRole("button", { name: /Lista de países/ }));
@@ -204,6 +202,14 @@ describe("HomePage: the globe", () => {
     expect(await screen.findByRole("heading", { name: "Japão" })).toBeInTheDocument();
     await waitFor(() => expect(listBooks).toHaveBeenCalledWith(expect.objectContaining({ author_country: "JP" }), expect.anything()));
     vi.unstubAllGlobals();
+  });
+
+  it("is not on the second floor any more", async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await user.click((await screen.findAllByRole("button", { name: "Subir ao segundo andar" }))[0]!);
+    await screen.findAllByRole("button", { name: "Descer ao andar de baixo" });
+    expect(screen.queryByRole("button", { name: /Abrir o globo/ })).not.toBeInTheDocument();
   });
 });
 

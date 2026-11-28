@@ -82,7 +82,7 @@ export interface Room {
   portals: readonly Portal[];
   /** The "Indicação" book, if this room has one. */
   picks?: Hotspot;
-  /** The armillary sphere: opens the globe ("Literary journey"). */
+  /** The old globe of the ground floor: opens the globe ("Literary journey"). */
   globe?: Hotspot;
   /** The hourglass: opens the reader's loans and when each is due. */
   hourglass?: Hotspot;
@@ -139,6 +139,12 @@ const LIBRARY: Room = {
         [255, 818], [248, 816], [235, 800], [220, 780], [208, 760], [202, 740],
         [200, 720],
   ]) },
+  // the old terrestrial globe on its brass stand at the left of the foreground: the globe of the literary journey
+  globe: { id: "library-globe", rotate: 0, skewY: 0, ...traced([
+        [0, 402], [30, 398], [60, 400], [85, 410], [110, 428], [128, 448], [140, 470], [143, 492],
+        [162, 502], [162, 510], [140, 518], [135, 530], [125, 545], [118, 562], [100, 578], [82, 585],
+        [84, 600], [100, 614], [112, 630], [116, 645], [100, 654], [50, 656], [0, 654],
+  ]) },
 };
 
 // The second floor: the blue, magical library, with a round stairwell in the floor leading back down.
@@ -157,8 +163,6 @@ const UPSTAIRS: Room = {
     { id: "sign-misterio", category: "misterio", rotate: 0, skewY: 0, ...traced([[448, 447], [534, 447], [534, 478], [448, 478]], UPSTAIRS_PX) },
     { id: "sign-biografia", category: "biografia", rotate: 0, skewY: 0, ...traced([[890, 442], [962, 442], [962, 470], [890, 470]], UPSTAIRS_PX) },
   ],
-  // the armillary sphere at the back of the room: the globe of the literary journey
-  globe: { id: "armillary-globe", rotate: 0, skewY: 0, ...traced([[715, 490], [719, 495], [719, 500], [727, 502], [736, 507], [744, 507], [744, 511], [738, 516], [737, 524], [738, 531], [733, 536], [726, 541], [721, 546], [729, 556], [727, 560], [707, 560], [703, 556], [710, 547], [706, 543], [700, 538], [695, 532], [689, 531], [688, 527], [696, 520], [699, 510], [705, 504], [712, 500], [712, 495]], UPSTAIRS_PX) },
   // the hourglass on the desk beside the lamp: time running out, so it shows the loans and their due dates
   hourglass: { id: "hourglass", rotate: 0, skewY: 0, ...traced([[1051, 602], [1087, 602], [1088, 608], [1084, 610], [1084, 650], [1086, 660], [1082, 666], [1055, 667], [1051, 660], [1055, 650], [1055, 610], [1051, 607]], UPSTAIRS_PX) },
   // the open book of constellations on the desk: the reader's own favourites, spread open

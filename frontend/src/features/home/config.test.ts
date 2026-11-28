@@ -91,7 +91,7 @@ describe("the second floor", () => {
     const middle = tree.left + tree.width / 2;
     expect(middle).toBeGreaterThan(0.38);
     expect(middle).toBeLessThan(0.48);
-    expect(tree.top + tree.height).toBeLessThan(HOME_ROOMS.upstairs.globe!.top); // above the armillary sphere
+    expect(HOME_ROOMS.upstairs.globe).toBeUndefined();
     expect(HOME_ROOMS.library.tree).toBeUndefined();
   });
 
@@ -111,10 +111,15 @@ describe("the second floor", () => {
     expect(HOME_ROOMS.library.hourglass).toBeUndefined();
   });
 
-  it("has the armillary sphere as the globe, outlined along its own shape", () => {
-    const globe = HOME_ROOMS.upstairs.globe!;
-    expect(globe.shape!.length).toBeGreaterThan(8);
-    expect(HOME_ROOMS.library.globe).toBeUndefined();
+  it("has the old globe on the ground floor, at the left, outlined along its own shape", () => {
+    const globe = HOME_ROOMS.library.globe!;
+    expect(globe.shape!.length).toBeGreaterThan(12);
+    expect(globe.left).toBe(0); // it is cut by the left edge of the picture
+    expect(globe.left + globe.width).toBeLessThan(0.1); // and stays on the left
+    expect(globe.top).toBeGreaterThan(0.4); // in the lower half, on the desk
+    expect(HOME_ROOMS.upstairs.globe).toBeUndefined(); // the armillary sphere upstairs is no longer a button
+    const book = HOME_ROOMS.library.picks!;
+    expect(globe.left + globe.width).toBeLessThan(book.left); // clear of the open book beside it
   });
 
   it("has two bookcases on the right and two at the back for the four extra categories", () => {
